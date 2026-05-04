@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Candella – Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --gold: #c9a24d;
+      --gold-2: #a8852e;
+      --dark: #111;
+      --beige: #ede8df;
+      --card: #faf6ef;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Lato', sans-serif; background: #ede8df; color: #111; min-height: 100vh; }
+
+    /* ===== NAVBAR ===== */
+    .dash-nav {
+      background: #111;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid rgba(201,162,77,0.3);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .dash-nav .logo { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 22px; letter-spacing: 3px; }
+    .dash-nav .nav-links { display: flex; gap: 20px; align-items: center; }
+    .dash-nav a { color: #ccc; text-decoration: none; font-size: 14px; font-weight: 700; transition: 0.2s; }
+    .dash-nav a:hover { color: var(--gold); }
+    .logout-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(201,162,77,0.3); color: #ccc !important; padding: 7px 16px; border-radius: 999px; cursor: pointer; font-family: 'Lato', sans-serif; font-size: 13px; font-weight: 700; transition: 0.2s; }
+    .logout-btn:hover { background: rgba(201,162,77,0.2); color: var(--gold) !important; }
+
+    /* ===== LOGIN ===== */
+    .login-wrap {
+      min-height: 90vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-card {
+      background: #faf6ef;
+      border: 1px solid rgba(201,162,77,0.2);
+      border-radius: 20px;
+      padding: 44px 36px;
+      width: min(400px, 100%);
+      box-shadow: 0 16px 50px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+    .login-card h2 { font-family: 'Playfair Display', serif; font-size: 26px; margin-bottom: 8px; }
+    .login-card p { color: #888; font-size: 14px; margin-bottom: 28px; }
+    .login-input {
+      width: 100%; padding: 13px 16px; margin-bottom: 14px;
+      border: 2px solid #ddd4c0; border-radius: 12px;
+      font-family: 'Lato', sans-serif; font-size: 15px;
+      background: #f5f0e8; outline: none; transition: 0.2s;
+    }
+    .login-input:focus { border-color: var(--gold); background: #fffdf8; box-shadow: 0 0 0 3px rgba(201,162,77,0.12); }
+    .login-btn {
+      width: 100%; padding: 14px; border-radius: 999px; border: none;
+      background: var(--gold); color: white; font-family: 'Lato', sans-serif;
+      font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.2s;
+      box-shadow: 0 5px 20px rgba(201,162,77,0.3);
+    }
+    .login-btn:hover { background: var(--gold-2); transform: translateY(-1px); }
+    .login-err { color: #e74c3c; font-size: 13px; margin-top: 10px; }
+
+    /* ===== DASHBOARD ===== */
+    .dash-wrap { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .stat-card {
+      background: #faf6ef;
+      border: 1px solid rgba(201,162,77,0.15);
+      border-radius: 16px;
+      padding: 24px 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+      text-align: center;
+    }
+    .stat-icon { font-size: 28px; margin-bottom: 8px; }
+    .stat-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: var(--gold); }
+    .stat-label { font-size: 13px; color: #888; margin-top: 4px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+
+    /* ===== FILTERS ===== */
+    .dash-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .dash-toolbar h2 { font-family: 'Playfair Display', serif; font-size: 22px; }
+    .toolbar-right { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    .search-input {
+      padding: 9px 16px; border: 2px solid #ddd4c0; border-radius: 999px;
+      font-family: 'Lato', sans-serif; font-size: 14px; background: #f5f0e8;
+      outline: none; transition: 0.2s; min-width: 200px;
+    }
+    .search-input:focus { border-color: var(--gold); background: #fffdf8; }
+
+    .filter-select {
+      padding: 9px 16px; border: 2px solid #ddd4c0; border-radius: 999px;
+      font-family: 'Lato', sans-serif; font-size: 14px; background: #f5f0e8;
+      outline: none; cursor: pointer; transition: 0.2s;
+    }
+    .filter-select:focus { border-color: var(--gold); }
+
+    /* ===== ORDERS TABLE ===== */
+    .orders-wrap { background: #faf6ef; border: 1px solid rgba(201,162,77,0.15); border-radius: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); overflow: hidden; }
+
+    .orders-table { width: 100%; border-collapse: collapse; }
+    .orders-table th {
+      background: #111; color: var(--gold);
+      padding: 14px 16px; text-align: left;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+    }
+    .orders-table td { padding: 14px 16px; border-bottom: 1px solid #ede8df; font-size: 14px; vertical-align: middle; }
+    .orders-table tr:last-child td { border-bottom: none; }
+    .orders-table tr:hover td { background: rgba(201,162,77,0.05); }
+
+    .badge {
+      display: inline-block; padding: 4px 12px; border-radius: 999px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+    }
+    .badge-new { background: #fff3cd; color: #856404; }
+    .badge-confirmed { background: #d1e7dd; color: #0a3622; }
+    .badge-delivered { background: #cfe2ff; color: #084298; }
+    .badge-shipped { background: #e2d9f3; color: #432874; }
+    .badge-cancelled { background: #f8d7da; color: #842029; }
+
+    .action-btn {
+      padding: 6px 12px; border-radius: 999px; border: none; cursor: pointer;
+      font-family: 'Lato', sans-serif; font-size: 12px; font-weight: 700; transition: 0.2s;
+      margin-left: 4px;
+    }
+    .btn-view { background: #111; color: white; }
+    .btn-view:hover { background: #333; }
+    .btn-confirm { background: #198754; color: white; }
+    .btn-confirm:hover { background: #157347; }
+    .btn-cancel { background: #dc3545; color: white; }
+    .btn-cancel:hover { background: #bb2d3b; }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: #aaa; }
+    .empty-state .empty-icon { font-size: 50px; margin-bottom: 14px; }
+    .empty-state p { font-size: 15px; }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 500; display: flex; align-items: center; justify-content: center;
+      padding: 20px; opacity: 0; pointer-events: none; transition: 0.25s;
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: #faf6ef; border-radius: 20px; padding: 32px;
+      width: min(560px, 100%); box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      max-height: 90vh; overflow-y: auto;
+      transform: translateY(20px); transition: 0.25s;
+    }
+    .modal-overlay.show .modal { transform: translateY(0); }
+    .modal h3 { font-family: 'Playfair Display', serif; font-size: 20px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid rgba(201,162,77,0.2); }
+    .modal-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ede8df; font-size: 14px; }
+    .modal-row span:first-child { color: #888; font-weight: 700; }
+    .modal-row span:last-child { font-weight: 700; text-align: right; }
+    .modal-items { margin: 16px 0; }
+    .modal-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #ede8df; }
+    .modal-item img { width: 48px; height: 48px; object-fit: cover; border-radius: 8px; }
+    .modal-item-name { font-weight: 700; font-size: 14px; }
+    .modal-item-sub { font-size: 12px; color: #888; }
+    .modal-total { font-size: 17px; font-weight: 700; text-align: right; margin-top: 14px; padding-top: 12px; border-top: 2px solid rgba(201,162,77,0.2); }
+    .modal-close { float: right; background: none; border: none; font-size: 22px; cursor: pointer; color: #888; }
+    .modal-close:hover { color: #333; }
+
+    .status-select {
+      padding: 7px 14px; border: 2px solid #ddd4c0; border-radius: 999px;
+      font-family: 'Lato', sans-serif; font-size: 13px; background: #f5f0e8;
+      font-weight: 700; cursor: pointer; outline: none; margin-top: 16px; width: 100%;
+    }
+    .save-status-btn {
+      width: 100%; padding: 12px; border-radius: 999px; border: none; margin-top: 10px;
+      background: var(--gold); color: white; font-family: 'Lato', sans-serif;
+      font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.2s;
+    }
+    .save-status-btn:hover { background: var(--gold-2); }
+
+    /* ===== EXPORT SECTION ===== */
+    .export-section {
+      background: #faf6ef;
+      border: 1px solid rgba(201,162,77,0.2);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    }
+    .export-section h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      margin-bottom: 14px;
+      color: #333;
+    }
+    .export-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .export-btn {
+      padding: 9px 20px; border-radius: 999px; border: none;
+      background: #1d6f42; color: white;
+      font-family: 'Lato', sans-serif; font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px;
+    }
+    .export-btn:hover { background: #155232; transform: translateY(-1px); }
+
+    @media (max-width: 768px) {
+      .dash-nav { padding: 14px 18px; }
+      .orders-table th:nth-child(4), .orders-table td:nth-child(4),
+      .orders-table th:nth-child(5), .orders-table td:nth-child(5) { display: none; }
+      .stat-card { padding: 18px 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="dash-nav">
+    <div class="logo">🕯️ Candella</div>
+    <div class="nav-links">
+      <a href="home.html" target="_blank"><i class="fa-solid fa-store"></i> View Store</a>
+      <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </div>
+  </nav>
+
+  <!-- LOGIN -->
+  <div id="loginSection" class="login-wrap">
+    <div class="login-card">
+      <div style="font-size:40px;margin-bottom:12px;">🕯️</div>
+      <h2>Admin Dashboard</h2>
+      <p>Enter your credentials to access orders</p>
+      <input class="login-input" type="text" id="adminUser" placeholder="Username" />
+      <input class="login-input" type="password" id="adminPass" placeholder="Password" onkeydown="if(event.key==='Enter')login()" />
+      <button class="login-btn" onclick="login()"><i class="fa-solid fa-lock-open"></i> Login</button>
+      <div class="login-err" id="loginErr"></div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashSection" style="display:none;">
+    <div class="dash-wrap">
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon">📦</div>
+          <div class="stat-num" id="statTotal">0</div>
+          <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🆕</div>
+          <div class="stat-num" id="statNew">0</div>
+          <div class="stat-label">New Orders</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-num" id="statConfirmed">0</div>
+          <div class="stat-label">Confirmed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">❌</div>
+          <div class="stat-num" id="statCancelled">0</div>
+          <div class="stat-label">Cancelled</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">💰</div>
+          <div class="stat-num" id="statRevenue">$0</div>
+          <div class="stat-label">Net Revenue</div>
+        </div>
+      </div>
+
+      <!-- Monthly Export -->
+      <div class="export-section">
+        <h3><i class="fa-solid fa-file-excel"></i> Export by Month</h3>
+        <div class="export-row">
+          <select class="filter-select" id="exportMonth">
+            <option value="">-- Select Month --</option>
+          </select>
+          <button class="export-btn" onclick="exportMonthly()">
+            <i class="fa-solid fa-download"></i> Download Excel
+          </button>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="dash-toolbar">
+        <h2>📋 Orders</h2>
+        <div class="toolbar-right">
+          <input class="search-input" type="text" id="searchInput" placeholder="🔍 Search by name or phone..." oninput="renderOrders()" />
+          <select class="filter-select" id="statusFilter" onchange="renderOrders()">
+            <option value="all">All Status</option>
+            <option value="new">New</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <button class="action-btn btn-view" onclick="loadOrders()" style="padding:9px 16px;font-size:13px;">
+            <i class="fa-solid fa-rotate"></i> Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="orders-wrap">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Order #</th>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Governorate</th>
+              <th>Items</th>
+              <th>Total (EGP)</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+        <div id="emptyState" class="empty-state" style="display:none;">
+          <div class="empty-icon">📭</div>
+          <p>No orders found</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ORDER MODAL -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal" id="orderModal">
+      <button class="modal-close" onclick="closeModal()">&#10005;</button>
+      <h3>📦 Order Details</h3>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-pMJRCHDvO4eqnp7Hn6Rj3iTQTEjcR-U",
+      authDomain: "candella-store.firebaseapp.com",
+      projectId: "candella-store",
+      storageBucket: "candella-store.firebasestorage.app",
+      messagingSenderId: "146464911155",
+      appId: "1:146464911155:web:225dde05d3db1cd7f59846"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const ADMIN_USER = 'admin';
+    const ADMIN_PASS = 'candella2026';
+    let allOrders = [];
+
+    // ===== LOGIN =====
+    window.login = function() {
+      const u = document.getElementById('adminUser').value.trim();
+      const p = document.getElementById('adminPass').value.trim();
+      if (u === ADMIN_USER && p === ADMIN_PASS) {
+        sessionStorage.setItem('candella_admin', '1');
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('dashSection').style.display = 'block';
+        loadOrders();
+      } else {
+        document.getElementById('loginErr').textContent = '❌ Wrong username or password';
+      }
+    }
+
+    window.logout = function() {
+      sessionStorage.removeItem('candella_admin');
+      document.getElementById('loginSection').style.display = 'flex';
+      document.getElementById('dashSection').style.display = 'none';
+    }
+
+    if (sessionStorage.getItem('candella_admin')) {
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('dashSection').style.display = 'block';
+    }
+
+    // ===== LOAD ORDERS =====
+    async function loadOrders() {
+      const tbody = document.getElementById('ordersBody');
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:#aaa;"><i class="fa-solid fa-spinner fa-spin"></i> Loading orders...</td></tr>';
+      try {
+        const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        allOrders = snapshot.docs.map(function(d) {
+          const data = d.data();
+          return {
+            _id: d.id,
+            shortId: data.shortId || null,
+            customer: data.customer || {},
+            items: data.items || [],
+            total: data.total || 0,
+            status: data.status || 'new',
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : (data.createdAt || new Date().toISOString())
+          };
+        });
+      } catch(e) {
+        console.error('Firebase error:', e);
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:#e74c3c;">❌ Failed to load orders.</td></tr>';
+        return;
+      }
+      updateStats();
+      renderOrders();
+      populateMonthDropdown();
+    }
+    window.loadOrders = loadOrders;
+
+    // ===== STATS (cancelled مش بتتحسب في الـ revenue) =====
+    function updateStats() {
+      const active = allOrders.filter(o => o.status !== 'cancelled');
+      const cancelled = allOrders.filter(o => o.status === 'cancelled');
+      const rev = active.reduce((s, o) => s + (o.total || 0), 0);
+
+      document.getElementById('statTotal').textContent = allOrders.length;
+      document.getElementById('statNew').textContent = allOrders.filter(o => o.status === 'new').length;
+      document.getElementById('statConfirmed').textContent = allOrders.filter(o => o.status === 'confirmed').length;
+      document.getElementById('statCancelled').textContent = cancelled.length;
+      document.getElementById('statRevenue').textContent = '$' + rev;
+    }
+
+    // ===== RENDER TABLE =====
+    function renderOrders() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const status = document.getElementById('statusFilter').value;
+
+      let filtered = allOrders.filter(o => {
+        const matchSearch = !search ||
+          (o.customer.fullName||'').toLowerCase().includes(search) ||
+          (o.customer.phone||'').includes(search);
+        const matchStatus = status === 'all' || o.status === status;
+        return matchSearch && matchStatus;
+      });
+
+      const tbody = document.getElementById('ordersBody');
+      const empty = document.getElementById('emptyState');
+
+      if (filtered.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+
+      tbody.innerHTML = filtered.map(function(o, i) {
+        const date = new Date(o.createdAt);
+        const dateStr = date.toLocaleDateString('en-GB') + ' ' + date.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+        const itemsCount = o.items.reduce(function(s, it){ return s + (it.qty||1); }, 0);
+        const isCancelled = o.status === 'cancelled';
+        return '<tr style="' + (isCancelled ? 'opacity:0.55;' : '') + '">' +
+          '<td><strong>#' + (i+1) + '</strong></td>' +
+          '<td><strong style="font-family:monospace;font-size:16px;letter-spacing:3px;color:var(--gold);">' + (o.shortId || '-') + '</strong></td>' +
+          '<td><strong>' + (o.customer.fullName||'-') + '</strong></td>' +
+          '<td>' + (o.customer.phone||'-') + '</td>' +
+          '<td>' + (o.customer.governorate||'-') + '</td>' +
+          '<td>' + itemsCount + ' item' + (itemsCount > 1 ? 's' : '') + '</td>' +
+          '<td><strong style="color:' + (isCancelled ? '#aaa;text-decoration:line-through' : 'var(--gold)') + '">$' + o.total + '</strong></td>' +
+          '<td><span class="badge badge-' + o.status + '">' + o.status.toUpperCase() + '</span></td>' +
+          '<td style="font-size:12px;color:#888;">' + dateStr + '</td>' +
+          '<td><button class="action-btn btn-view" onclick="viewOrder(\'' + o._id + '\')"><i class="fa-solid fa-eye"></i></button></td>' +
+        '</tr>';
+      }).join('');
+    }
+    window.renderOrders = renderOrders;
+
+    // ===== POPULATE MONTH DROPDOWN =====
+    function populateMonthDropdown() {
+      const months = {};
+      allOrders.forEach(o => {
+        const d = new Date(o.createdAt);
+        const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+        const label = d.toLocaleString('en-GB', { month: 'long', year: 'numeric' });
+        months[key] = label;
+      });
+      const sel = document.getElementById('exportMonth');
+      sel.innerHTML = '<option value="">-- Select Month --</option>';
+      Object.keys(months).sort().reverse().forEach(k => {
+        sel.innerHTML += '<option value="' + k + '">' + months[k] + '</option>';
+      });
+    }
+
+    // ===== EXPORT MONTHLY EXCEL (CSV) =====
+    window.exportMonthly = function() {
+      const monthVal = document.getElementById('exportMonth').value;
+      if (!monthVal) { alert('Please select a month first'); return; }
+
+      const [year, month] = monthVal.split('-').map(Number);
+      const monthName = new Date(year, month-1).toLocaleString('en-GB', { month: 'long', year: 'numeric' });
+
+      const filtered = allOrders.filter(o => {
+        const d = new Date(o.createdAt);
+        return d.getFullYear() === year && d.getMonth()+1 === month && o.status !== 'cancelled';
+      });
+      const cancelled = allOrders.filter(o => {
+        const d = new Date(o.createdAt);
+        return d.getFullYear() === year && d.getMonth()+1 === month && o.status === 'cancelled';
+      });
+
+      if (filtered.length === 0 && cancelled.length === 0) { alert('No orders found for this month'); return; }
+
+      const wb = XLSX.utils.book_new();
+
+      // ==========================================
+      // SHEET 1: الطلبات التفصيلية
+      // ==========================================
+      const ordersData = [
+        ['#', 'Date', 'Customer', 'Phone', 'Governorate', 'Address', 'Items', 'Qty', 'Total ($)', 'Status', 'Notes']
+      ];
+      [...filtered, ...cancelled].forEach((o, i) => {
+        const itemsStr = o.items.map(it => it.name + ' x' + it.qty).join(' | ');
+        const totalQty = o.items.reduce((s, it) => s + (it.qty||1), 0);
+        ordersData.push([
+          i + 1,
+          new Date(o.createdAt).toLocaleString('en-GB'),
+          o.customer.fullName || '',
+          o.customer.phone || '',
+          o.customer.governorate || '',
+          (o.customer.address || ''),
+          itemsStr,
+          totalQty,
+          o.status === 'cancelled' ? 0 : o.total,
+          o.status.toUpperCase(),
+          o.customer.notes || ''
+        ]);
+      });
+      // Summary
+      const netRev = filtered.reduce((s, o) => s + o.total, 0);
+      ordersData.push([]);
+      ordersData.push(['', '', '', '', '', '', '', '', '', '', '']);
+      ordersData.push(['', '', '', '', '', 'Total Active Orders:', filtered.length, '', '', '', '']);
+      ordersData.push(['', '', '', '', '', 'Cancelled Orders:', cancelled.length, '', '', '', '']);
+      ordersData.push(['', '', '', '', '', 'Net Revenue:', '', '', '$' + netRev, '', '']);
+
+      const ws1 = XLSX.utils.aoa_to_sheet(ordersData);
+      ws1['!cols'] = [
+        {wch:4},{wch:18},{wch:22},{wch:14},{wch:14},{wch:30},
+        {wch:35},{wch:5},{wch:10},{wch:12},{wch:20}
+      ];
+      XLSX.utils.book_append_sheet(wb, ws1, 'Orders');
+
+      // ==========================================
+      // SHEET 2: تحليل المنتجات
+      // ==========================================
+      const productMap = {};
+      filtered.forEach(o => {
+        o.items.forEach(it => {
+          const key = it.name;
+          if (!productMap[key]) {
+            productMap[key] = { name: key, price: it.price, totalQty: 0, totalRevenue: 0, orderCount: 0 };
+          }
+          productMap[key].totalQty += (it.qty || 1);
+          productMap[key].totalRevenue += (it.qty || 1) * it.price;
+          productMap[key].orderCount += 1;
+        });
+      });
+
+      const productsSorted = Object.values(productMap).sort((a, b) => b.totalQty - a.totalQty);
+
+      const productsData = [
+        ['Rank', 'Product Name', 'Unit Price ($)', 'Qty Sold', 'Orders Count', 'Total Revenue ($)', '% of Revenue']
+      ];
+      const totalAllRev = productsSorted.reduce((s, p) => s + p.totalRevenue, 0);
+      productsSorted.forEach((p, i) => {
+        const pct = totalAllRev > 0 ? ((p.totalRevenue / totalAllRev) * 100).toFixed(1) + '%' : '0%';
+        productsData.push([
+          i + 1,
+          p.name,
+          p.price,
+          p.totalQty,
+          p.orderCount,
+          p.totalRevenue,
+          pct
+        ]);
+      });
+      productsData.push([]);
+      productsData.push(['', 'TOTAL', '', productsSorted.reduce((s,p)=>s+p.totalQty,0), '', totalAllRev, '100%']);
+
+      const ws2 = XLSX.utils.aoa_to_sheet(productsData);
+      ws2['!cols'] = [
+        {wch:6},{wch:28},{wch:14},{wch:10},{wch:13},{wch:16},{wch:13}
+      ];
+      XLSX.utils.book_append_sheet(wb, ws2, 'Products Analysis');
+
+      // ==========================================
+      // SHEET 3: ملخص الشهر
+      // ==========================================
+      const summaryData = [
+        ['Candella – Monthly Summary'],
+        [monthName],
+        [''],
+        ['Metric', 'Value'],
+        ['Total Orders (Active)', filtered.length],
+        ['Cancelled Orders', cancelled.length],
+        ['Total Orders', filtered.length + cancelled.length],
+        [''],
+        ['Net Revenue ($)', netRev],
+        ['Avg Order Value ($)', filtered.length > 0 ? (netRev / filtered.length).toFixed(2) : 0],
+        [''],
+        ['Top Product', productsSorted.length > 0 ? productsSorted[0].name : '-'],
+        ['Top Product Qty Sold', productsSorted.length > 0 ? productsSorted[0].totalQty : 0],
+        ['Top Product Revenue ($)', productsSorted.length > 0 ? productsSorted[0].totalRevenue : 0],
+        [''],
+        ['Most Popular Governorate', getMostPopular(filtered)],
+      ];
+
+      const ws3 = XLSX.utils.aoa_to_sheet(summaryData);
+      ws3['!cols'] = [{wch:28},{wch:20}];
+      XLSX.utils.book_append_sheet(wb, ws3, 'Summary');
+
+      // Download
+      XLSX.writeFile(wb, 'Candella_' + monthName.replace(' ', '_') + '.xlsx');
+    }
+
+    function getMostPopular(orders) {
+      const govMap = {};
+      orders.forEach(o => {
+        const g = o.customer.governorate || 'Unknown';
+        govMap[g] = (govMap[g] || 0) + 1;
+      });
+      return Object.entries(govMap).sort((a,b) => b[1]-a[1])[0]?.[0] || '-';
+    }
+
+    // ===== VIEW ORDER MODAL =====
+    window.viewOrder = function(id) {
+      const o = allOrders.find(x => x._id === id);
+      if (!o) return;
+      const date = new Date(o.createdAt).toLocaleString('en-GB');
+      document.getElementById('modalContent').innerHTML =
+        '<div class="modal-row"><span>Order #</span><span style="font-family:monospace;font-size:22px;letter-spacing:4px;font-weight:900;color:var(--gold);">' + (o.shortId || '-') + '</span></div>' +
+        '<div class="modal-row"><span>Firebase ID</span><span style="font-size:10px;word-break:break-all;color:#aaa;">' + o._id + '</span></div>' +
+        '<div class="modal-row"><span>Date</span><span>' + date + '</span></div>' +
+        '<div class="modal-row"><span>Customer</span><span>' + (o.customer.fullName||'-') + '</span></div>' +
+        '<div class="modal-row"><span>Phone</span><span>' + (o.customer.phone||'-') + '</span></div>' +
+        '<div class="modal-row"><span>Governorate</span><span>' + (o.customer.governorate||'-') + '</span></div>' +
+        '<div class="modal-row"><span>Address</span><span style="max-width:280px;">' + (o.customer.address||'-') + '</span></div>' +
+        (o.customer.notes ? '<div class="modal-row"><span>Notes</span><span>' + o.customer.notes + '</span></div>' : '') +
+        '<div class="modal-items">' +
+          o.items.map(it =>
+            '<div class="modal-item">' +
+              (it.img ? '<img src="' + it.img + '" />' : '<div style="width:48px;height:48px;background:#ede8df;border-radius:8px;display:flex;align-items:center;justify-content:center;">🕯️</div>') +
+              '<div><div class="modal-item-name">' + it.name + '</div><div class="modal-item-sub">Qty: ' + it.qty + ' × $' + it.price + '</div></div>' +
+              '<div style="margin-left:auto;font-weight:700;color:var(--gold);">$' + (it.qty * it.price) + '</div>' +
+            '</div>'
+          ).join('') +
+        '</div>' +
+        '<div class="modal-total">Total: $' + o.total + '</div>' +
+        '<select class="status-select" id="modalStatus">' +
+          '<option value="new"' + (o.status==='new'?' selected':'') + '>🆕 New</option>' +
+          '<option value="confirmed"' + (o.status==='confirmed'?' selected':'') + '>✅ Confirmed</option>' +
+          '<option value="delivered"' + (o.status==='delivered'?' selected':'') + '>🚚 Delivered</option>' +
+          '<option value="cancelled"' + (o.status==='cancelled'?' selected':'') + '>❌ Cancelled</option>' +
+        '</select>' +
+        '<button class="save-status-btn" onclick="updateStatus(\'' + o._id + '\')">💾 Save Status</button>';
+      document.getElementById('modalOverlay').classList.add('show');
+    }
+
+    // ===== UPDATE STATUS IN FIREBASE =====
+    window.updateStatus = async function(id) {
+      const newStatus = document.getElementById('modalStatus').value;
+      const o = allOrders.find(x => x._id === id);
+      if (!o) return;
+      try {
+        await updateDoc(doc(db, 'orders', id), { status: newStatus });
+        o.status = newStatus;
+        updateStats();
+        renderOrders();
+        closeModal();
+      } catch(e) {
+        alert('❌ Failed to update status.');
+        console.error(e);
+      }
+    }
+
+    window.closeModal = function(e) {
+      if (e && e.target !== document.getElementById('modalOverlay')) return;
+      document.getElementById('modalOverlay').classList.remove('show');
+    }
+
+    if (sessionStorage.getItem('candella_admin')) loadOrders();
+  </script>
+</body>
+</html>

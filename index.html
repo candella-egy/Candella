@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="refresh" content="0;url=home.html" />
+</head>
+<body></body>
+</html>
+
+  <main class="landing-wrapper">
+    <section class="landing-card">
+      <h1 class="landing-title">Candella</h1>
+
+      <p class="landing-subtitle">
+        Luxury Sand Candles &amp; Home Antiques.<br>
+        Explore our exclusive collection and light your special moments.
+      </p>
+
+      <p id="countdown" class="landing-countdown"></p>
+
+      <a href="home.html" class="landing-btn landing-btn-primary">
+        <i class="fa-solid fa-cart-shopping"></i> Shop Now
+      </a>
+
+      <a href="https://wa.me/201099984764" class="landing-btn landing-btn-dark" target="_blank">
+        <i class="fab fa-whatsapp"></i> WhatsApp
+      </a>
+
+      <a href="https://www.instagram.com/candellaegy" class="landing-btn landing-btn-dark" target="_blank">
+        <i class="fab fa-instagram"></i> Instagram
+      </a>
+
+      <p class="landing-footer">© 2026 Candella. All Rights Reserved.</p>
+    </section>
+  </main>
+
+  <script>
+    var stored = localStorage.getItem('candella_end');
+    var endTime = stored ? parseInt(stored) : Date.now() + 24*60*60*1000;
+    if(!stored) localStorage.setItem('candella_end', endTime);
+
+    function tick() {
+      var diff = endTime - Date.now();
+      var el = document.getElementById('countdown');
+      if(diff <= 0){ el.textContent = '⏰ Offer ended!'; return; }
+      var h = String(Math.floor(diff/3600000)).padStart(2,'0');
+      var m = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+      var s = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+      el.textContent = '⏳ Offer ends in: ' + h + ':' + m + ':' + s;
+      setTimeout(tick, 1000);
+    }
+    tick();
+  </script>
+</body>
+</html>

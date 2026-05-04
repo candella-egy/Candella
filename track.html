@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Candella – Track Your Order</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { background: var(--cream); min-height: 100vh; }
+
+    .track-page {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 120px 20px 80px;
+    }
+
+    /* ── Header ── */
+    .track-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .track-header h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 38px;
+      font-weight: 300;
+      color: var(--navy);
+      letter-spacing: 7px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .track-header p {
+      font-size: 12px;
+      color: #aaa;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ── Search Box ── */
+    .search-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 32px 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+    }
+    .search-card h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 17px;
+      color: var(--navy);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .search-row {
+      display: flex;
+      gap: 12px;
+    }
+    .search-row input {
+      flex: 1;
+      padding: 14px 18px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: 'Jost', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--navy);
+      letter-spacing: 6px;
+      text-align: center;
+      outline: none;
+      background: var(--cream);
+      transition: 0.2s;
+    }
+    .search-row input:focus {
+      border-color: var(--navy);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgba(30,58,95,0.08);
+    }
+    .search-row input::placeholder {
+      color: #ccc;
+      font-size: 16px;
+      letter-spacing: 4px;
+    }
+    .track-btn {
+      padding: 14px 28px;
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Jost', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+    .track-btn:hover { background: var(--navy-2); }
+    .track-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .search-err { color: #e74c3c; font-size: 12px; margin-top: 10px; letter-spacing: 0.5px; }
+
+    /* ── Order Card ── */
+    .order-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .order-card.visible { display: block; animation: fadeUp 0.4s ease; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .order-card-header {
+      background: var(--navy);
+      color: white;
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .order-card-header .order-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      letter-spacing: 4px;
+    }
+    .order-card-header .order-date {
+      font-size: 11px;
+      opacity: 0.7;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .order-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .meta-cell {
+      padding: 16px 24px;
+      border-right: 1px solid var(--border);
+    }
+    .meta-cell:nth-child(even) { border-right: none; }
+    .meta-cell label {
+      font-size: 10px;
+      color: #aaa;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 5px;
+    }
+    .meta-cell span {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--navy);
+    }
+    .meta-cell .total-val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      color: var(--gold);
+    }
+
+    /* ── Stepper ── */
+    .stepper-wrap {
+      padding: 32px 24px;
+    }
+    .stepper-wrap h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 15px;
+      color: var(--navy);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    .stepper { position: relative; }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+      padding-bottom: 32px;
+      position: relative;
+    }
+    .step:last-child { padding-bottom: 0; }
+
+    /* Connecting line */
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 18px;
+      top: 37px;
+      bottom: 0;
+      width: 2px;
+      background: #e8e8e8;
+      transition: background 0.5s ease;
+    }
+    .step.done:not(:last-child)::after { background: var(--navy); }
+    .step.active:not(:last-child)::after {
+      background: linear-gradient(to bottom, var(--gold) 0%, #e8e8e8 100%);
+    }
+
+    /* Icon circle */
+    .step-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 15px;
+      border: 2px solid #e0e0e0;
+      background: var(--cream);
+      color: #ccc;
+      transition: all 0.4s ease;
+      position: relative;
+      z-index: 1;
+    }
+    .step.done .step-icon {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: white;
+    }
+    .step.active .step-icon {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: white;
+      animation: glow 2s infinite;
+    }
+    @keyframes glow {
+      0%,100% { box-shadow: 0 0 0 4px rgba(184,151,106,0.2); }
+      50%      { box-shadow: 0 0 0 10px rgba(184,151,106,0.05); }
+    }
+
+    .step-body { padding-top: 7px; flex: 1; }
+    .step-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ccc;
+      margin-bottom: 3px;
+      transition: color 0.4s;
+    }
+    .step.done .step-title { color: var(--navy); }
+    .step.active .step-title { color: var(--dark); }
+
+    .step-desc {
+      font-size: 12px;
+      color: #ccc;
+      letter-spacing: 0.3px;
+      line-height: 1.6;
+      transition: color 0.4s;
+    }
+    .step.done .step-desc,
+    .step.active .step-desc { color: #999; }
+
+    /* Active badge */
+    .now-badge {
+      display: inline-block;
+      background: #fff3e0;
+      color: #e67e22;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      margin-left: 8px;
+      text-transform: uppercase;
+      vertical-align: middle;
+    }
+
+    /* ── Cancelled state ── */
+    .cancelled-banner {
+      background: #fff0f0;
+      border: 1px solid #f5c6c6;
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin: 0 24px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #c0392b;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .cancelled-banner i { font-size: 20px; }
+
+    /* ── Items list ── */
+    .order-items-wrap {
+      border-top: 1px solid var(--border);
+      padding: 20px 24px;
+    }
+    .order-items-wrap h4 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 15px;
+      color: var(--navy);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .oi {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .oi:last-child { border-bottom: none; }
+    .oi img {
+      width: 48px; height: 48px;
+      object-fit: cover;
+      border-radius: 4px;
+      background: var(--beige);
+      flex-shrink: 0;
+    }
+    .oi-name { font-size: 13px; font-weight: 600; color: var(--navy); }
+    .oi-sub { font-size: 12px; color: #aaa; margin-top: 2px; }
+    .oi-price { margin-left: auto; font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 600; color: var(--dark); white-space: nowrap; }
+
+    /* ── Contact help ── */
+    .help-box {
+      text-align: center;
+      padding: 20px;
+      margin-top: 8px;
+    }
+    .help-box p { font-size: 12px; color: #bbb; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+    .help-box a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: 3px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: #25D366;
+      color: white;
+      transition: 0.2s;
+    }
+    .help-box a:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    /* Not found */
+    .not-found {
+      text-align: center;
+      padding: 40px 20px;
+      display: none;
+      animation: fadeUp 0.3s ease;
+    }
+    .not-found.visible { display: block; }
+    .not-found .nf-icon { font-size: 50px; margin-bottom: 14px; }
+    .not-found p { font-size: 13px; color: #aaa; letter-spacing: 1px; }
+
+    /* ── Auto-fill from localStorage ── */
+    .autofill-hint {
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+      margin-top: 8px;
+      display: none;
+    }
+    .autofill-hint.show { display: block; }
+
+    @media (max-width: 520px) {
+      .search-row { flex-direction: column; }
+      .order-meta-grid { grid-template-columns: 1fr; }
+      .meta-cell { border-right: none; border-bottom: 1px solid var(--border); }
+      .track-header h1 { font-size: 28px; letter-spacing: 5px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">FREE SHIPPING ON ORDERS OVER 5000 EGP</div>
+
+  <nav class="navbar">
+    <a href="home.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Shop</a>
+    <div class="logo">Candella</div>
+    <div></div>
+  </nav>
+
+  <div class="track-page">
+
+    <!-- Header -->
+    <div class="track-header">
+      <h1>Track Order</h1>
+      <p>Enter your 4-digit order number below</p>
+    </div>
+
+    <!-- Search -->
+    <div class="search-card">
+      <h3>🔍 Order Lookup</h3>
+      <div class="search-row">
+        <input type="text" id="orderInput" maxlength="4" placeholder="0000"
+          oninput="this.value=this.value.replace(/\D/g,'')"
+          onkeydown="if(event.key==='Enter')trackOrder()" />
+        <button class="track-btn" onclick="trackOrder()" id="trackBtn">
+          <i class="fa-solid fa-magnifying-glass"></i> Track
+        </button>
+      </div>
+      <div class="search-err" id="searchErr"></div>
+      <div class="autofill-hint" id="autofillHint">✨ We found your last order – click Track!</div>
+    </div>
+
+    <!-- Result card -->
+    <div class="order-card" id="orderCard"></div>
+
+    <!-- Not found -->
+    <div class="not-found" id="notFound">
+      <div class="nf-icon">🔍</div>
+      <p>No order found with this number.<br>Please check and try again.</p>
+    </div>
+
+    <!-- Help -->
+    <div class="help-box">
+      <p>Need help with your order?</p>
+      <a href="https://wa.me/201099984764" target="_blank">
+        <i class="fab fa-whatsapp"></i> Contact on WhatsApp
+      </a>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-pMJRCHDvO4eqnp7Hn6Rj3iTQTEjcR-U",
+      authDomain: "candella-store.firebaseapp.com",
+      projectId: "candella-store",
+      storageBucket: "candella-store.firebasestorage.app",
+      messagingSenderId: "146464911155",
+      appId: "1:146464911155:web:225dde05d3db1cd7f59846"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    window._db = db;
+    window._query = query;
+    window._where = where;
+    window._getDocs = getDocs;
+    window._collection = collection;
+  </script>
+
+  <script>
+    // ── Step definitions ──
+    const STEPS = [
+      { key: 'new',       icon: 'fa-solid fa-circle-check',   title: 'Order Placed',        desc: 'Your order has been received and is being reviewed.' },
+      { key: 'confirmed', icon: 'fa-solid fa-box-open',        title: 'Order Confirmed',     desc: 'Your order is confirmed and being prepared.' },
+      { key: 'shipped',   icon: 'fa-solid fa-truck',           title: 'Out for Delivery',    desc: 'Your order is on its way with our delivery team.' },
+      { key: 'delivered', icon: 'fa-solid fa-house-circle-check', title: 'Order Delivered', desc: 'Your order has been delivered. Enjoy your purchase!' },
+    ];
+
+    const STATUS_ORDER = { new: 0, confirmed: 1, shipped: 2, delivered: 3 };
+
+    // ── Auto-fill last order from localStorage ──
+    const lastOrder = JSON.parse(localStorage.getItem('candella_last_order') || 'null');
+    if (lastOrder && lastOrder.shortId) {
+      document.getElementById('orderInput').value = lastOrder.shortId;
+      document.getElementById('autofillHint').classList.add('show');
+    }
+
+    window.trackOrder = async function() {
+      const num = document.getElementById('orderInput').value.trim();
+      const errEl = document.getElementById('searchErr');
+      const cardEl = document.getElementById('orderCard');
+      const nfEl = document.getElementById('notFound');
+      const btn = document.getElementById('trackBtn');
+
+      errEl.textContent = '';
+      cardEl.className = 'order-card';
+      nfEl.className = 'not-found';
+
+      if (num.length !== 4) {
+        errEl.textContent = 'Please enter a valid 4-digit order number.';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+      try {
+        const q = window._query(
+          window._collection(window._db, 'orders'),
+          window._where('shortId', '==', num)
+        );
+        const snap = await window._getDocs(q);
+
+        if (snap.empty) {
+          nfEl.className = 'not-found visible';
+        } else {
+          const docData = snap.docs[0].data();
+          renderOrderCard(docData, num);
+          cardEl.className = 'order-card visible';
+        }
+      } catch(e) {
+        errEl.textContent = '❌ Connection error. Please try again.';
+        console.error(e);
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Track';
+    };
+
+    function renderOrderCard(o, num) {
+      const status = o.status || 'new';
+      const statusIdx = STATUS_ORDER[status] ?? 0;
+      const isCancelled = status === 'cancelled';
+      const date = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAt || Date.now());
+      const dateStr = date.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+
+      // Build stepper HTML
+      let stepperHTML = '';
+      STEPS.forEach(function(s, i) {
+        let cls = '';
+        if (isCancelled) { cls = i === 0 ? 'done' : ''; }
+        else if (i < statusIdx) cls = 'done';
+        else if (i === statusIdx) cls = 'active';
+
+        const isNow = (!isCancelled && i === statusIdx);
+        stepperHTML +=
+          '<div class="step ' + cls + '">' +
+            '<div class="step-icon"><i class="' + s.icon + '"></i></div>' +
+            '<div class="step-body">' +
+              '<div class="step-title">' + s.title + (isNow ? '<span class="now-badge">Now</span>' : '') + '</div>' +
+              '<div class="step-desc">' + s.desc + '</div>' +
+            '</div>' +
+          '</div>';
+      });
+
+      // Build items HTML
+      let itemsHTML = '';
+      (o.items || []).forEach(function(it) {
+        itemsHTML +=
+          '<div class="oi">' +
+            (it.img ? '<img src="' + it.img + '" alt="' + it.name + '" />' : '') +
+            '<div>' +
+              '<div class="oi-name">' + it.name + '</div>' +
+              '<div class="oi-sub">Qty: ' + it.qty + '</div>' +
+            '</div>' +
+            '<div class="oi-price">EGP ' + (it.qty * it.price) + '</div>' +
+          '</div>';
+      });
+
+      document.getElementById('orderCard').innerHTML =
+        // Header
+        '<div class="order-card-header">' +
+          '<div><div style="font-size:10px;opacity:0.6;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">Order Number</div>' +
+          '<div class="order-num">#' + num + '</div></div>' +
+          '<div class="order-date">' + dateStr + '</div>' +
+        '</div>' +
+
+        // Meta grid
+        '<div class="order-meta-grid">' +
+          '<div class="meta-cell"><label>Customer</label><span>' + (o.customer?.fullName || '-') + '</span></div>' +
+          '<div class="meta-cell"><label>Governorate</label><span>' + (o.customer?.governorate || '-') + '</span></div>' +
+          '<div class="meta-cell"><label>Total</label><span class="total-val">EGP ' + o.total + '</span></div>' +
+          '<div class="meta-cell"><label>Status</label><span style="color:' + statusColor(status) + ';font-weight:700;">' + statusLabel(status) + '</span></div>' +
+        '</div>' +
+
+        // Cancelled banner
+        (isCancelled ?
+          '<div class="cancelled-banner"><i class="fa-solid fa-circle-xmark"></i> This order has been cancelled.</div>' : '') +
+
+        // Stepper
+        (!isCancelled ?
+          '<div class="stepper-wrap"><h4>📦 Delivery Progress</h4><div class="stepper">' + stepperHTML + '</div></div>' : '') +
+
+        // Items
+        '<div class="order-items-wrap"><h4>🛍 Items</h4>' + itemsHTML + '</div>';
+    }
+
+    function statusColor(s) {
+      return { new:'#e67e22', confirmed:'#27ae60', shipped:'#2980b9', delivered:'#1a1a1a', cancelled:'#e74c3c' }[s] || '#888';
+    }
+    function statusLabel(s) {
+      return { new:'🆕 Order Placed', confirmed:'✅ Confirmed', shipped:'🚚 Out for Delivery', delivered:'🏠 Delivered', cancelled:'❌ Cancelled' }[s] || s;
+    }
+
+    // Auto track if coming from checkout page
+    if (lastOrder && lastOrder.shortId && window.location.search.includes('auto=1')) {
+      setTimeout(function() { window.trackOrder(); }, 400);
+    }
+  </script>
+
+</body>
+</html>

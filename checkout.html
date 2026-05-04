@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Candella – Checkout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .cancel-box{margin:14px 0 0;padding:10px 14px;background:#fff8f0;border:1px solid #f0d9c0;border-radius:8px}
+    .cancel-label{font-size:12px;color:#888;margin-bottom:8px;line-height:1.4}
+    .cancel-label strong{color:#e67e22;font-size:13px;font-family:'Cormorant Garamond',serif}
+    .cancel-order-btn{width:100%;padding:7px;border-radius:5px;border:1px solid #e74c3c;background:transparent;color:#e74c3c;font-family:'Jost',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;transition:.2s}
+    .cancel-order-btn:hover:not(:disabled){background:#e74c3c;color:white}
+
+    /* ── Order number box ── */
+    .order-num-box{background:var(--navy);color:white;border-radius:10px;padding:24px;text-align:center;margin-bottom:16px}
+    .onum-label{font-size:10px;opacity:.65;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:10px}
+    .onum-digits{font-family:'Cormorant Garamond',serif;font-size:58px;font-weight:700;letter-spacing:14px;color:#f0c97f;line-height:1;display:block}
+    .onum-hint{font-size:11px;opacity:.55;margin-top:10px;letter-spacing:.8px}
+    .track-order-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;margin-top:10px;background:transparent;border:1px solid var(--navy);color:var(--navy);border-radius:4px;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;text-decoration:none;transition:.2s}
+    .track-order-btn:hover{background:var(--navy);color:white}
+
+    /* ── Payment options ── */
+    .payment-section{margin-bottom:24px}
+    .payment-section>label{display:block;font-weight:600;font-size:11px;margin-bottom:12px;color:#888;letter-spacing:2px;text-transform:uppercase}
+    .payment-options{display:flex;flex-direction:column;gap:10px}
+    .pay-option{display:flex;align-items:center;gap:14px;padding:14px 16px;border:2px solid #e0e0e0;border-radius:8px;cursor:pointer;transition:all .2s;background:var(--cream);position:relative}
+    .pay-option:hover{border-color:var(--navy);background:var(--white)}
+    .pay-option.selected{border-color:var(--navy);background:var(--white);box-shadow:0 0 0 3px rgba(30,58,95,.08)}
+    .pay-option input[type=radio]{display:none}
+    .pay-radio-dot{width:20px;height:20px;border-radius:50%;border:2px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s}
+    .pay-option.selected .pay-radio-dot{border-color:var(--navy)}
+    .pay-option.selected .pay-radio-dot::after{content:'';width:10px;height:10px;border-radius:50%;background:var(--navy)}
+    .pay-icon{font-size:22px;width:36px;text-align:center;flex-shrink:0}
+    .pay-body{flex:1}
+    .pay-title{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:2px}
+    .pay-desc{font-size:11px;color:#aaa;letter-spacing:.3px}
+    .pay-logos{display:flex;gap:5px;align-items:center;margin-top:4px}
+    .pay-logo{height:20px;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:800;letter-spacing:.5px;color:white;display:flex;align-items:center}
+    .logo-visa{background:#1a1f71}
+    .logo-mc{background:#eb001b}
+    .logo-meeza{background:#00a651}
+    .logo-fawry{background:#f7a800;color:#111}
+    .pay-badge{position:absolute;top:-1px;right:12px;background:var(--gold);color:white;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:0 0 5px 5px}
+
+    /* ── Loading overlay ── */
+    .pay-loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.92);z-index:999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+    .pay-loading-overlay.show{display:flex}
+    .pay-spinner{width:52px;height:52px;border:4px solid #eee;border-top-color:var(--navy);border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .pay-loading-text{font-size:13px;color:var(--navy);letter-spacing:1.5px;text-transform:uppercase;font-weight:600}
+
+    /* ── Paymob iframe modal ── */
+    .paymob-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+    .paymob-modal.show{display:flex}
+    .paymob-modal-inner{background:white;border-radius:12px;overflow:hidden;width:min(500px,100%);height:min(680px,90vh);display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+    .paymob-modal-header{background:var(--navy);color:white;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+    .paymob-modal-header span{font-family:'Cormorant Garamond',serif;font-size:18px;letter-spacing:2px}
+    .paymob-close-btn{background:none;border:none;color:white;font-size:22px;cursor:pointer;opacity:.7}
+    .paymob-close-btn:hover{opacity:1}
+    .paymob-modal-inner iframe{flex:1;border:none;width:100%}
+
+    /* ── Fawry ref box ── */
+    .fawry-ref-box{background:#fffbf0;border:2px solid #f7a800;border-radius:10px;padding:24px;text-align:center;margin-top:16px}
+    .fref-label{font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+    .fref-num{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:700;letter-spacing:8px;color:#c8891a;line-height:1}
+    .fref-hint{font-size:12px;color:#888;margin-top:10px;line-height:1.6}
+    .fref-hint strong{color:#c8891a}
+    .fref-copy-btn{margin-top:12px;padding:8px 20px;border-radius:4px;border:1px solid #f7a800;background:transparent;color:#c8891a;font-family:'Jost',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:.2s}
+    .fref-copy-btn:hover{background:#f7a800;color:white}
+
+    /* config warning banner */
+    .config-warn{background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#856404;display:none}
+    .config-warn.show{display:block}
+    .config-warn strong{display:block;margin-bottom:3px}
+  </style>
+</head>
+<body class="checkout-page">
+
+  <div class="pay-loading-overlay" id="payLoadingOverlay">
+    <div class="pay-spinner"></div>
+    <div class="pay-loading-text" id="payLoadingText">Preparing payment...</div>
+  </div>
+
+  <div class="paymob-modal" id="paymobModal">
+    <div class="paymob-modal-inner">
+      <div class="paymob-modal-header">
+        <span>🔒 Secure Payment – Paymob</span>
+        <button class="paymob-close-btn" onclick="closePaymobModal()">✕</button>
+      </div>
+      <iframe id="paymobFrame" src="" title="Paymob Payment"></iframe>
+    </div>
+  </div>
+
+  <div class="top-bar">FREE SHIPPING ON ORDERS OVER 5000 EGP</div>
+  <nav class="navbar">
+    <a href="home.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Shop</a>
+    <div class="logo">Candella</div>
+    <div></div>
+  </nav>
+
+  <div class="checkout-wrapper">
+    <div class="order-summary">
+      <h3>📦 Order Summary</h3>
+      <div id="summaryItems"></div>
+      <div class="summary-total">Total: <strong>EGP <span id="summaryTotal">0</span></strong></div>
+      <div id="cancelBoxContainer"></div>
+    </div>
+
+    <div class="checkout-form-wrap">
+      <h2>📋 Delivery Details</h2>
+
+      <!-- Config warning (shown when Paymob keys not set) -->
+      <div class="config-warn" id="configWarn">
+        <strong>⚙️ Online payment not configured yet</strong>
+        Open checkout.html and add your Paymob API keys to enable card & Fawry payments.
+      </div>
+
+      <div id="successMsg" style="display:none;"></div>
+
+      <div id="formContainer">
+        <div class="form-group">
+          <label>Full Name (3 parts) *</label>
+          <input type="text" id="fullName" placeholder="e.g. Ahmed Mohamed Ali" />
+          <span class="err" id="err_fullName"></span>
+        </div>
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input type="tel" id="phone" placeholder="e.g. 01xxxxxxxxx" maxlength="11" />
+          <span class="err" id="err_phone"></span>
+        </div>
+        <div class="form-group">
+          <label>Governorate *</label>
+          <select id="governorate">
+            <option value="">-- Select Governorate --</option>
+            <option>Cairo</option><option>Giza</option><option>Alexandria</option>
+            <option>Dakahlia</option><option>Beheira</option><option>Gharbia</option>
+            <option>Sharqia</option><option>Monufia</option><option>Qalyubia</option>
+            <option>Faiyum</option><option>Beni Suef</option><option>Minya</option>
+            <option>Assiut</option><option>Sohag</option><option>Qena</option>
+            <option>Luxor</option><option>Aswan</option><option>Red Sea</option>
+            <option>South Sinai</option><option>North Sinai</option>
+            <option>Port Said</option><option>Ismailia</option><option>Suez</option>
+            <option>Damietta</option><option>Kafr El Sheikh</option><option>Matrouh</option>
+            <option>New Valley</option>
+          </select>
+          <span class="err" id="err_governorate"></span>
+        </div>
+        <div class="form-group">
+          <label>Detailed Address *</label>
+          <textarea id="address" placeholder="e.g. 12 Tahrir Street, Floor 3, Apt 12" rows="3"></textarea>
+          <span class="err" id="err_address"></span>
+        </div>
+        <div class="form-group">
+          <label>Additional Notes (optional)</label>
+          <textarea id="notes" placeholder="Any special delivery instructions..." rows="2"></textarea>
+        </div>
+
+        <!-- ══ Payment method ══ -->
+        <div class="payment-section">
+          <label>Payment Method *</label>
+          <div class="payment-options">
+            <div class="pay-option selected" id="opt_cash" onclick="selectPayment('cash')">
+              <input type="radio" name="payMethod" value="cash" checked />
+              <div class="pay-radio-dot"></div>
+              <div class="pay-icon">💵</div>
+              <div class="pay-body">
+                <div class="pay-title">Cash on Delivery</div>
+                <div class="pay-desc">Pay when your order arrives</div>
+              </div>
+            </div>
+            <div class="pay-option" id="opt_card" onclick="selectPayment('card')">
+              <input type="radio" name="payMethod" value="card" />
+              <div class="pay-radio-dot"></div>
+              <div class="pay-icon">💳</div>
+              <div class="pay-body">
+                <div class="pay-title">Credit / Debit Card</div>
+                <div class="pay-logos">
+                  <span class="pay-logo logo-visa">VISA</span>
+                  <span class="pay-logo logo-mc">MC</span>
+                  <span class="pay-logo logo-meeza">Meeza</span>
+                </div>
+                <div class="pay-desc" style="margin-top:4px;">Powered by Paymob · Secure 3DS</div>
+              </div>
+              <div class="pay-badge">Online</div>
+            </div>
+            <div class="pay-option" id="opt_fawry" onclick="selectPayment('fawry')">
+              <input type="radio" name="payMethod" value="fawry" />
+              <div class="pay-radio-dot"></div>
+              <div class="pay-icon">🏪</div>
+              <div class="pay-body">
+                <div class="pay-title">Fawry</div>
+                <div class="pay-logos"><span class="pay-logo logo-fawry">Fawry</span></div>
+                <div class="pay-desc" style="margin-top:4px;">Pay at any Fawry outlet near you</div>
+              </div>
+            </div>
+          </div>
+          <span class="err" id="err_payment"></span>
+        </div>
+
+        <button class="checkout-btn full-width" onclick="submitOrder()" id="submitBtn">
+          <i class="fa-solid fa-paper-plane"></i> <span id="submitLabel">Confirm Order</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, doc, updateDoc, query, where, getDocs }
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    const app = initializeApp({
+      apiKey:"AIzaSyA-pMJRCHDvO4eqnp7Hn6Rj3iTQTEjcR-U",
+      authDomain:"candella-store.firebaseapp.com",
+      projectId:"candella-store",
+      storageBucket:"candella-store.firebasestorage.app",
+      messagingSenderId:"146464911155",
+      appId:"1:146464911155:web:225dde05d3db1cd7f59846"
+    });
+    const db = getFirestore(app);
+    window.db=db; window.addDoc=addDoc; window.collection=collection;
+    window.doc=doc; window.updateDoc=updateDoc;
+    window._query=query; window._where=where; window._getDocs=getDocs;
+  </script>
+
+  <script>
+    /* ═══════════════════════════════════════════════════════════
+       ⚙️  PAYMOB CONFIG — أضف مفاتيحك هنا بعد التسجيل على Paymob
+       ═══════════════════════════════════════════════════════════
+       1. سجّل على: https://accept.paymob.com/portal2/en/register
+       2. Settings → API Keys → انسخ الـ API Key
+       3. Developers → Payment Integrations:
+          - أنشئ "Card Payment" integration → خد الـ ID
+          - أنشئ "Fawry" integration         → خد الـ ID
+       4. Developers → iFrames → أنشئ iframe → خد الـ ID
+       ═══════════════════════════════════════════════════════════ */
+    var PAYMOB_API_KEY     = 'YOUR_PAYMOB_API_KEY';        // ← ضع مفتاحك هنا
+    var PAYMOB_CARD_INT_ID =  0;                           // ← Card Integration ID (رقم)
+    var PAYMOB_FAWRY_INT_ID = 0;                           // ← Fawry Integration ID (رقم)
+    var PAYMOB_IFRAME_ID   = 'YOUR_IFRAME_ID';             // ← iframe ID من Paymob
+    /* ═══════════════════════════════════════════════════════════ */
+
+    var PAYMOB_CONFIGURED = (PAYMOB_API_KEY !== 'YOUR_PAYMOB_API_KEY');
+
+    // Show warning if not configured
+    if (!PAYMOB_CONFIGURED) {
+      document.getElementById('configWarn').classList.add('show');
+    }
+
+    var selectedPayment = 'cash';
+    var cart = JSON.parse(localStorage.getItem('candella_cart') || '[]');
+    var savedOrderData = null;
+
+    // ── Render summary ──
+    var summaryEl = document.getElementById('summaryItems');
+    if (cart.length === 0) {
+      summaryEl.innerHTML = '<p style="opacity:.6">No items in cart</p>';
+    } else {
+      var total = 0;
+      summaryEl.innerHTML = cart.map(function(c){
+        total += c.price * c.qty;
+        return '<div class="summary-item">' +
+          '<img src="'+c.img+'" alt="'+c.name+'" />' +
+          '<div><div class="summary-name">'+c.name+'</div><div class="summary-qty">Qty: '+c.qty+'</div></div>' +
+          '<div class="summary-price">EGP '+(c.price*c.qty)+'</div></div>';
+      }).join('');
+      document.getElementById('summaryTotal').textContent = total;
+    }
+
+    // ── Payment selector ──
+    function selectPayment(method) {
+      selectedPayment = method;
+      ['cash','card','fawry'].forEach(function(m){
+        document.getElementById('opt_'+m).classList.toggle('selected', m===method);
+      });
+      var labels = {cash:'Confirm Order', card:'Pay Now by Card', fawry:'Get Fawry Code'};
+      document.getElementById('submitLabel').textContent = labels[method];
+      document.getElementById('err_payment').textContent = '';
+    }
+    window.selectPayment = selectPayment;
+
+    // ── Validate ──
+    function validate() {
+      var ok=true;
+      ['fullName','phone','governorate','address'].forEach(function(id){ document.getElementById('err_'+id).textContent=''; });
+      var fn=document.getElementById('fullName').value;
+      var ph=document.getElementById('phone').value;
+      var gv=document.getElementById('governorate').value;
+      var ad=document.getElementById('address').value;
+      if(fn.trim().split(' ').length<3){document.getElementById('err_fullName').textContent='Please enter your full name (3 parts)';ok=false;}
+      if(!/^01[0-9]{9}$/.test(ph.trim())){document.getElementById('err_phone').textContent='Please enter a valid Egyptian phone number (11 digits)';ok=false;}
+      if(gv===''){document.getElementById('err_governorate').textContent='Please select your governorate';ok=false;}
+      if(ad.trim().length<15){document.getElementById('err_address').textContent='Please enter a detailed address (at least 15 characters)';ok=false;}
+      return ok;
+    }
+
+    // ── Unique 4-digit ID ──
+    async function generateShortId() {
+      for(var i=0;i<20;i++){
+        var c=String(Math.floor(1000+Math.random()*9000));
+        try{
+          var snap=await window._getDocs(window._query(window._collection(window.db,'orders'),window._where('shortId','==',c)));
+          if(snap.empty) return c;
+        }catch(e){return c;}
+      }
+      return String(Date.now()).slice(-4);
+    }
+
+    // ── Main submit ──
+    async function submitOrder() {
+      if(!validate()) return;
+      if(cart.length===0){alert('Your cart is empty!');return;}
+
+      // If online payment chosen but not configured → warn and fallback
+      if((selectedPayment==='card'||selectedPayment==='fawry') && !PAYMOB_CONFIGURED){
+        if(!confirm('⚠️ Online payment is not configured yet.\n\nSwitch to Cash on Delivery instead?')) return;
+        selectPayment('cash');
+      }
+
+      var btn=document.getElementById('submitBtn');
+      btn.disabled=true;
+      btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+
+      var shortId = await generateShortId();
+      var orderTotal = cart.reduce(function(s,c){return s+c.price*c.qty;},0);
+
+      savedOrderData = {
+        shortId:        shortId,
+        customer:{
+          fullName:    document.getElementById('fullName').value.trim(),
+          phone:       document.getElementById('phone').value.trim(),
+          governorate: document.getElementById('governorate').value,
+          address:     document.getElementById('address').value.trim(),
+          notes:       document.getElementById('notes').value.trim(),
+        },
+        items:          cart,
+        total:          orderTotal,
+        paymentMethod:  selectedPayment,
+        paymentStatus:  selectedPayment==='cash'?'cash_on_delivery':'pending',
+        status:         'new',
+        createdAt:      new Date()
+      };
+
+      if(selectedPayment==='cash'){
+        await saveAndShowSuccess(savedOrderData);
+      } else if(selectedPayment==='card'){
+        await startPaymob('card');
+      } else {
+        await startPaymob('fawry');
+      }
+    }
+    window.submitOrder = submitOrder;
+
+    function resetBtn(){
+      var btn=document.getElementById('submitBtn');
+      btn.disabled=false;
+      var labels={cash:'Confirm Order',card:'Pay Now by Card',fawry:'Get Fawry Code'};
+      btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> <span id="submitLabel">'+labels[selectedPayment]+'</span>';
+    }
+
+    /* ════════════════════════════════════════
+       PAYMOB FLOW  (3-step accept.paymob.com)
+    ════════════════════════════════════════ */
+    async function startPaymob(type) {
+      showLoading(type==='card'?'Connecting to payment gateway...':'Getting your Fawry code...');
+      try {
+        // Step 1 – Auth token
+        var r1 = await fetch('https://accept.paymob.com/api/auth/tokens',{
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({api_key: PAYMOB_API_KEY})
+        });
+        var d1 = await r1.json();
+        if(!d1.token) throw new Error('Auth failed. Check your Paymob API key.');
+        var authToken = d1.token;
+
+        // Step 2 – Create order
+        var r2 = await fetch('https://accept.paymob.com/api/ecommerce/orders',{
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            auth_token: authToken,
+            delivery_needed: false,
+            amount_cents: savedOrderData.total * 100,
+            currency: 'EGP',
+            items: savedOrderData.items.map(function(it){return{
+              name:it.name, amount_cents:it.price*100, description:it.name, quantity:it.qty
+            };})
+          })
+        });
+        var d2 = await r2.json();
+        if(!d2.id) throw new Error('Failed to create payment order.');
+        var pmOrderId = d2.id;
+
+        // Step 3 – Payment key
+        var nameParts = savedOrderData.customer.fullName.split(' ');
+        var r3 = await fetch('https://accept.paymob.com/api/acceptance/payment_keys',{
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            auth_token:     authToken,
+            amount_cents:   savedOrderData.total * 100,
+            expiration:     3600,
+            order_id:       pmOrderId,
+            currency:       'EGP',
+            integration_id: type==='card' ? PAYMOB_CARD_INT_ID : PAYMOB_FAWRY_INT_ID,
+            billing_data:{
+              first_name:   nameParts[0]||'NA',
+              last_name:    nameParts[nameParts.length-1]||'NA',
+              phone_number: savedOrderData.customer.phone,
+              email:        'noreply@candella.com',
+              apartment:'NA',floor:'NA',street:'NA',building:'NA',
+              shipping_method:'NA',postal_code:'NA',
+              city:  savedOrderData.customer.governorate,
+              country:'EG',
+              state: savedOrderData.customer.governorate
+            }
+          })
+        });
+        var d3 = await r3.json();
+        if(!d3.token) throw new Error('Failed to get payment key.');
+
+        hideLoading();
+
+        if(type==='card'){
+          // Open iframe
+          document.getElementById('paymobFrame').src =
+            'https://accept.paymob.com/api/acceptance/iframes/'+PAYMOB_IFRAME_ID+'?payment_token='+d3.token;
+          document.getElementById('paymobModal').classList.add('show');
+          // Save order with pending payment status
+          savedOrderData.paymobOrderId = pmOrderId;
+          await saveAndShowSuccess(savedOrderData, true);
+        } else {
+          // Fawry: Paymob returns a numeric reference
+          savedOrderData.fawryReference = d3.token;
+          savedOrderData.paymobOrderId  = pmOrderId;
+          await saveAndShowFawry(savedOrderData, d3.token);
+        }
+
+      } catch(err) {
+        hideLoading();
+        console.error('Paymob:', err);
+        alert('❌ Payment error: '+err.message+'\n\nPlease try again or use Cash on Delivery.');
+        resetBtn();
+      }
+    }
+
+    function closePaymobModal(){
+      document.getElementById('paymobModal').classList.remove('show');
+      document.getElementById('paymobFrame').src='';
+    }
+    window.closePaymobModal = closePaymobModal;
+
+    function showLoading(msg){
+      document.getElementById('payLoadingText').textContent=msg;
+      document.getElementById('payLoadingOverlay').classList.add('show');
+    }
+    function hideLoading(){document.getElementById('payLoadingOverlay').classList.remove('show');}
+
+    /* ════════════════════════════════════════
+       FIREBASE SAVE + UI
+    ════════════════════════════════════════ */
+    async function saveAndShowSuccess(orderData, cardPending) {
+      try {
+        var ref = await addDoc(collection(db,'orders'), orderData);
+        localStorage.removeItem('candella_cart');
+        var t = Date.now();
+        localStorage.setItem('candella_last_order', JSON.stringify({
+          id:'ORD-'+orderData.shortId, shortId:orderData.shortId,
+          firestoreId:ref.id, time:t, status:'new'
+        }));
+        showSuccessUI(orderData.shortId, ref.id, t, orderData.paymentMethod, cardPending);
+      } catch(e){console.error(e);alert('❌ Error saving order.');resetBtn();}
+    }
+
+    async function saveAndShowFawry(orderData, fawryRef) {
+      try {
+        var ref = await addDoc(collection(db,'orders'), orderData);
+        localStorage.removeItem('candella_cart');
+        var t = Date.now();
+        localStorage.setItem('candella_last_order', JSON.stringify({
+          id:'ORD-'+orderData.shortId, shortId:orderData.shortId,
+          firestoreId:ref.id, time:t, status:'new'
+        }));
+        showFawryUI(orderData.shortId, ref.id, t, fawryRef);
+      } catch(e){console.error(e);alert('❌ Error saving order.');resetBtn();}
+    }
+
+    function showSuccessUI(shortId, firestoreId, orderTime, method, cardPending) {
+      document.getElementById('formContainer').style.display='none';
+      var note = method==='cash'
+        ? '<p style="font-size:12px;color:#aaa;margin-top:4px;">💵 Cash on Delivery</p>'
+        : cardPending ? '<p style="font-size:12px;color:#e67e22;margin-top:4px;">💳 Complete payment in the window above</p>' : '';
+      var s=document.getElementById('successMsg');
+      s.style.display='block';
+      s.innerHTML=
+        '<div style="text-align:center;padding:8px 0 18px;">'+
+          '<div style="font-size:42px;margin-bottom:8px;">✅</div>'+
+          '<h3 style="font-family:\'Cormorant Garamond\',serif;font-size:22px;color:var(--navy);letter-spacing:2px;margin-bottom:4px;">Order Placed!</h3>'+
+          note+
+          '<p style="font-size:13px;color:#888;margin-top:8px;">We will contact you shortly to confirm.</p>'+
+        '</div>'+
+        '<div class="order-num-box">'+
+          '<div class="onum-label">Your Order Number</div>'+
+          '<span class="onum-digits">'+shortId+'</span>'+
+          '<div class="onum-hint">Save this number · Use it to track your order</div>'+
+        '</div>'+
+        '<a href="track.html?auto=1" class="track-order-btn"><i class="fa-solid fa-truck"></i> Track My Order</a>'+
+        '<a href="home.html" class="landing-btn landing-btn-primary" style="display:flex;margin-top:10px;text-decoration:none;"><i class="fa-solid fa-house"></i> Back to Shop</a>';
+      startCancelBox(firestoreId, orderTime);
+    }
+
+    function showFawryUI(shortId, firestoreId, orderTime, fawryRef) {
+      document.getElementById('formContainer').style.display='none';
+      var s=document.getElementById('successMsg');
+      s.style.display='block';
+      s.innerHTML=
+        '<div style="text-align:center;padding:8px 0 12px;">'+
+          '<div style="font-size:42px;margin-bottom:8px;">🏪</div>'+
+          '<h3 style="font-family:\'Cormorant Garamond\',serif;font-size:22px;color:var(--navy);letter-spacing:2px;margin-bottom:6px;">Almost Done!</h3>'+
+          '<p style="font-size:13px;color:#888;">Pay at any Fawry point within <strong>48 hours</strong></p>'+
+        '</div>'+
+        '<div class="fawry-ref-box">'+
+          '<div class="fref-label">Fawry Reference Code</div>'+
+          '<div class="fref-num" id="fawryRefNum">'+(fawryRef||'------')+'</div>'+
+          '<div class="fref-hint">Go to any <strong>Fawry</strong> outlet · Give them this code · Pay <strong>EGP '+savedOrderData.total+'</strong></div>'+
+          '<button class="fref-copy-btn" onclick="copyFawryRef()"><i class="fa-regular fa-copy"></i> Copy Code</button>'+
+        '</div>'+
+        '<div class="order-num-box" style="margin-top:16px;">'+
+          '<div class="onum-label">Your Order Number</div>'+
+          '<span class="onum-digits">'+shortId+'</span>'+
+          '<div class="onum-hint">Use this to track your order</div>'+
+        '</div>'+
+        '<a href="track.html?auto=1" class="track-order-btn" style="margin-top:12px;"><i class="fa-solid fa-truck"></i> Track My Order</a>'+
+        '<a href="home.html" class="landing-btn landing-btn-primary" style="display:flex;margin-top:10px;text-decoration:none;"><i class="fa-solid fa-house"></i> Back to Shop</a>';
+      startCancelBox(firestoreId, orderTime);
+    }
+
+    function copyFawryRef(){
+      var el=document.getElementById('fawryRefNum');
+      if(!el) return;
+      navigator.clipboard.writeText(el.textContent.trim())
+        .then(function(){alert('✅ Code copied!');})
+        .catch(function(){alert('Code: '+el.textContent.trim());});
+    }
+    window.copyFawryRef=copyFawryRef;
+
+    function startCancelBox(firestoreId, orderTime){
+      var cc=document.getElementById('cancelBoxContainer');
+      if(!cc) return;
+      cc.innerHTML='<div class="cancel-box" id="cancelBox"><p class="cancel-label">Cancel within <strong id="cancelTimer">60:00</strong></p><button class="cancel-order-btn" id="cancelBtn" onclick="cancelOrder()">Cancel Order</button></div>';
+      var end=orderTime+60*60*1000;
+      var iv=setInterval(function(){
+        var rem=end-Date.now();
+        if(rem<=0){clearInterval(iv);var cb=document.getElementById('cancelBtn'),ct=document.getElementById('cancelTimer');if(cb){cb.disabled=true;cb.textContent='Cancellation window closed';cb.style.opacity='0.4';cb.style.cursor='not-allowed';}if(ct)ct.textContent='00:00';return;}
+        var ct=document.getElementById('cancelTimer');
+        if(ct) ct.textContent=String(Math.floor(rem/60000)).padStart(2,'0')+':'+String(Math.floor((rem%60000)/1000)).padStart(2,'0');
+      },1000);
+    }
+
+    async function cancelOrder(){
+      var order=JSON.parse(localStorage.getItem('candella_last_order')||'null');
+      if(!order) return;
+      if((order.time+60*60*1000)-Date.now()<=0){alert('Cancellation window has closed.');return;}
+      if(!confirm('Are you sure you want to cancel your order?')) return;
+      var cb=document.getElementById('cancelBtn');
+      if(cb){cb.disabled=true;cb.textContent='Cancelling...';}
+      try{
+        await window.updateDoc(window.doc(window.db,'orders',order.firestoreId),{status:'cancelled'});
+        order.status='cancelled';localStorage.setItem('candella_last_order',JSON.stringify(order));
+        var box=document.getElementById('cancelBox');
+        if(box) box.innerHTML='<p style="color:#e74c3c;font-weight:700;font-size:13px;">❌ Your order has been cancelled.</p>';
+      }catch(e){console.error(e);alert('❌ Failed to cancel. Contact us on WhatsApp.');if(cb){cb.disabled=false;cb.textContent='Cancel Order';}}
+    }
+    window.cancelOrder=cancelOrder;
+  </script>
+</body>
+</html>

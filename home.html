@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Candella – Shop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Side Menu -->
+  <div id="sideMenu" class="side-menu">
+    <span class="close-btn" onclick="closeMenu()">&#10005;</span>
+    <div class="side-logo">🕯️ Candella</div>
+    <a href="#" data-filter="all">All Products</a>
+    <a href="#" data-filter="candles">🕯️ Sand Candles</a>
+    <a href="#" data-filter="oils">🌸 Aromatic Oils</a>
+    <a href="#" data-filter="antiques">🏺 Home Antiques</a>
+    <a href="#" data-filter="offers">🔥 Special Offers</a>
+    <div class="side-divider"></div>
+    <a href="https://wa.me/201099984764" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+    <a href="https://www.instagram.com/candellaegy" target="_blank"><i class="fab fa-instagram"></i> Instagram</a>
+  </div>
+  <div id="menuOverlay" class="menu-overlay" onclick="closeMenu()"></div>
+
+  <!-- Top Bar -->
+  <div class="top-bar">FREE SHIPPING ON ORDERS OVER 5000 EGP</div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="menu-icon" onclick="openMenu()">
+      <i class="fa-solid fa-bars"></i>
+    </div>
+    <div class="logo">Candella</div>
+    <div class="icons">
+      <a href="home.html" style="color:white;text-decoration:none;"><i class="fa-solid fa-house"></i></a>
+      <a href="track.html" style="color:white;text-decoration:none;margin-left:20px;" title="Track Order"><i class="fa-solid fa-truck"></i></a>
+      <span onclick="toggleCart()" style="position:relative;cursor:pointer;margin-left:20px;">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span id="cartBadge" class="cart-badge">0</span>
+      </span>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Light Your Moments</h1>
+      <p>Luxury Sand Candles · Aromatic Oils · Home Antiques</p>
+      <a href="#productsSection" class="btn" id="showAllBtn">Shop Now</a>
+    </div>
+  </section>
+
+  <!-- Products -->
+  <section class="products" id="productsSection">
+    <h2>Our Collection</h2>
+
+    <div class="filter-tabs">
+      <button class="tab active" data-filter="all">All</button>
+      <button class="tab" data-filter="candles">🕯️ Candles</button>
+      <button class="tab" data-filter="oils">🌸 Oils</button>
+      <button class="tab" data-filter="antiques">🏺 Antiques</button>
+      <button class="tab" data-filter="offers">🔥 Offers</button>
+    </div>
+
+    <div class="product-list" id="productList"></div>
+  </section>
+
+  <!-- Cart Sidebar -->
+  <div id="cartSidebar" class="cart-sidebar">
+    <div class="cart-header">
+      <h3>🛒 Your Cart</h3>
+      <span onclick="toggleCart()" style="font-size:24px;cursor:pointer;color:#888;">&#10005;</span>
+    </div>
+    <div id="cartItems" class="cart-items"></div>
+    <div class="cart-footer">
+      <div class="cart-total">Total: EGP <span id="cartTotal">0</span></div>
+      <button class="checkout-btn" onclick="goCheckout()">Proceed to Checkout</button>
+    </div>
+  </div>
+  <div id="cartOverlay" class="menu-overlay" onclick="toggleCart()"></div>
+
+  <!-- Floating Contact -->
+  <div class="contact-container">
+    <button class="contact-toggle" onclick="toggleContact()">
+      <i class="fa-solid fa-headset"></i>
+    </button>
+    <div id="contactMenu" class="contact-menu">
+      <a href="https://wa.me/201099984764" target="_blank">
+        <i class="fab fa-whatsapp"></i> WhatsApp
+      </a>
+      <a href="https://www.instagram.com/candellaegy" target="_blank">
+        <i class="fab fa-instagram"></i> Instagram
+      </a>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const products = [
+      { id:1, name:'Rose Sand Candle', desc:'Romantic rose scent, 100g', price:25, category:'candles', img:'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=300&q=80' },
+      { id:2, name:'Lavender Sand Candle', desc:'Calming lavender fragrance', price:28, category:'candles', img:'https://images.unsplash.com/photo-1602196429840-37e1a65fe1e4?w=300&q=80' },
+      { id:3, name:'Vanilla Sand Candle', desc:'Warm and soft vanilla scent', price:22, category:'candles', img:'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=300&q=80' },
+      { id:4, name:'Luxury Oud Oil', desc:'Premium authentic oud fragrance', price:45, category:'oils', img:'https://images.unsplash.com/photo-1547793548-7a0e7dfdb24f?w=300&q=80' },
+      { id:5, name:'Rose Taif Oil', desc:'Purest rose essential oil', price:55, category:'oils', img:'https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?w=300&q=80' },
+      { id:6, name:'White Musk Oil', desc:'Light and delicate musk scent', price:38, category:'oils', img:'https://images.unsplash.com/photo-1599305090598-fe179d501227?w=300&q=80' },
+      { id:7, name:'Antique Vase', desc:'Beautiful handcrafted ceramic vase', price:75, category:'antiques', img:'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=300&q=80' },
+      { id:8, name:'Heritage Mirror Frame', desc:'Hand-carved luxury frame', price:120, category:'antiques', img:'https://images.unsplash.com/photo-1615529328331-f8917597711f?w=300&q=80' },
+      { id:9, name:'Candle & Oil Set', desc:'Special limited time bundle', price:65, category:'offers', img:'https://images.unsplash.com/photo-1602874801137-c6e91b87fb69?w=300&q=80' },
+    ];
+
+    let cart = JSON.parse(localStorage.getItem('candella_cart') || '[]');
+
+    function saveCart() { localStorage.setItem('candella_cart', JSON.stringify(cart)); }
+
+    function renderProducts(filter) {
+      filter = filter || 'all';
+      const list = document.getElementById('productList');
+      const filtered = filter === 'all' ? products : products.filter(function(p){ return p.category === filter; });
+      list.innerHTML = filtered.map(function(p){ return (
+        '<div class="product-card">' +
+          '<div class="product-img-wrap">' +
+            '<img src="' + p.img + '" alt="' + p.name + '" loading="lazy" />' +
+            '<div class="img-overlay">' +
+              '<button class="overlay-cart-btn" onclick="addToCart(' + p.id + ')" title="Add to Cart">' +
+                '<i class="fa-solid fa-bag-shopping"></i>' +
+              '</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="product-info">' +
+            '<h3>' + p.name + '</h3>' +
+            '<p>' + p.desc + '</p>' +
+            '<div class="product-footer">' +
+              '<span class="price">EGP ' + p.price + '</span>' +
+              '<div class="btn-group">' +
+                '<button class="add-btn" onclick="addToCart(' + p.id + ')">+ Cart</button>' +
+                '<button class="buy-now-btn" onclick="buyNow(' + p.id + ')">Buy Now</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      ); }).join('');
+
+      // Scroll reveal
+      setTimeout(function() {
+        var cards = document.querySelectorAll('.product-card');
+        var observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1 });
+        cards.forEach(function(card, i) {
+          card.style.transitionDelay = (i * 0.07) + 's';
+          observer.observe(card);
+        });
+      }, 50);
+    }
+
+    function buyNow(id) {
+      addToCart(id);
+      window.location.href = 'checkout.html';
+    }
+
+    function addToCart(id) {
+      var product = null;
+      for(var i=0;i<products.length;i++){ if(products[i].id===id){ product=products[i]; break; } }
+      var existing = null;
+      for(var i=0;i<cart.length;i++){ if(cart[i].id===id){ existing=cart[i]; break; } }
+      if(existing){ existing.qty++; }
+      else{ cart.push({ id:product.id, name:product.name, desc:product.desc, price:product.price, category:product.category, img:product.img, qty:1 }); }
+      saveCart();
+      updateCartUI();
+      showToast('✅ ' + product.name + ' added to cart!');
+    }
+
+    function removeFromCart(id) {
+      cart = cart.filter(function(c){ return c.id !== id; });
+      saveCart(); updateCartUI();
+    }
+
+    function changeQty(id, delta) {
+      var item = null;
+      for(var i=0;i<cart.length;i++){ if(cart[i].id===id){ item=cart[i]; break; } }
+      if(!item) return;
+      item.qty += delta;
+      if(item.qty <= 0) removeFromCart(id);
+      else { saveCart(); updateCartUI(); }
+    }
+
+    function updateCartUI() {
+      var badge = document.getElementById('cartBadge');
+      var total = 0, count = 0;
+      for(var i=0;i<cart.length;i++){ total += cart[i].price * cart[i].qty; count += cart[i].qty; }
+      badge.textContent = count;
+      badge.style.display = count > 0 ? 'flex' : 'none';
+      document.getElementById('cartTotal').textContent = total;
+
+      var itemsEl = document.getElementById('cartItems');
+      if(cart.length === 0){ itemsEl.innerHTML = '<p class="cart-empty">Your cart is empty 🛒</p>'; return; }
+      itemsEl.innerHTML = cart.map(function(c){ return (
+        '<div class="cart-item">' +
+          '<img src="' + c.img + '" alt="' + c.name + '" />' +
+          '<div class="cart-item-info">' +
+            '<span class="cart-item-name">' + c.name + '</span>' +
+            '<span class="cart-item-price">EGP ' + (c.price * c.qty) + '</span>' +
+            '<div class="qty-ctrl">' +
+              '<button onclick="changeQty(' + c.id + ',-1)">&#8722;</button>' +
+              '<span>' + c.qty + '</span>' +
+              '<button onclick="changeQty(' + c.id + ',1)">+</button>' +
+            '</div>' +
+          '</div>' +
+          '<button class="remove-btn" onclick="removeFromCart(' + c.id + ')">&#10005;</button>' +
+        '</div>'
+      ); }).join('');
+    }
+
+    var cartOpen = false;
+    function toggleCart(forceOpen) {
+      cartOpen = forceOpen !== undefined ? forceOpen : !cartOpen;
+      document.getElementById('cartSidebar').classList.toggle('open', cartOpen);
+      document.getElementById('cartOverlay').classList.toggle('show', cartOpen);
+    }
+
+    function goCheckout() {
+      if(cart.length === 0){ alert('Your cart is empty!'); return; }
+      window.location.href = 'checkout.html';
+    }
+
+    function showToast(msg) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show';
+      setTimeout(function(){ t.className = 'toast'; }, 2500);
+    }
+
+    // Filter tabs
+    var tabs = document.querySelectorAll('.tab');
+    for(var i=0;i<tabs.length;i++){
+      tabs[i].addEventListener('click', function(){
+        for(var j=0;j<tabs.length;j++) tabs[j].classList.remove('active');
+        this.classList.add('active');
+        renderProducts(this.getAttribute('data-filter'));
+      });
+    }
+
+    // Side menu
+    function openMenu() {
+      document.getElementById('sideMenu').classList.add('open');
+      document.getElementById('menuOverlay').classList.add('show');
+    }
+    function closeMenu() {
+      document.getElementById('sideMenu').classList.remove('open');
+      document.getElementById('menuOverlay').classList.remove('show');
+    }
+
+    var sideLinks = document.querySelectorAll('.side-menu a[data-filter]');
+    for(var i=0;i<sideLinks.length;i++){
+      sideLinks[i].addEventListener('click', function(e){
+        e.preventDefault();
+        var filter = this.getAttribute('data-filter');
+        closeMenu();
+        document.getElementById('productsSection').scrollIntoView({ behavior:'smooth' });
+        renderProducts(filter);
+        for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('active', tabs[j].getAttribute('data-filter') === filter);
+      });
+    }
+
+    function toggleContact() {
+      document.getElementById('contactMenu').classList.toggle('show');
+    }
+
+    renderProducts();
+    updateCartUI();
+  </script>
+</body>
+</html>

@@ -1,55 +1,255 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="refresh" content="0;url=home.html" />
-</head>
-<body></body>
-</html>
-
-  <main class="landing-wrapper">
-    <section class="landing-card">
-      <h1 class="landing-title">Candella</h1>
-
-      <p class="landing-subtitle">
-        Luxury Sand Candles &amp; Home Antiques.<br>
-        Explore our exclusive collection and light your special moments.
-      </p>
-
-      <p id="countdown" class="landing-countdown"></p>
-
-      <a href="home.html" class="landing-btn landing-btn-primary">
-        <i class="fa-solid fa-cart-shopping"></i> Shop Now
-      </a>
-
-      <a href="https://wa.me/201099984764" class="landing-btn landing-btn-dark" target="_blank">
-        <i class="fab fa-whatsapp"></i> WhatsApp
-      </a>
-
-      <a href="https://www.instagram.com/candellaegy" class="landing-btn landing-btn-dark" target="_blank">
-        <i class="fab fa-instagram"></i> Instagram
-      </a>
-
-      <p class="landing-footer">© 2026 Candella. All Rights Reserved.</p>
-    </section>
-  </main>
-
-  <script>
-    var stored = localStorage.getItem('candella_end');
-    var endTime = stored ? parseInt(stored) : Date.now() + 24*60*60*1000;
-    if(!stored) localStorage.setItem('candella_end', endTime);
-
-    function tick() {
-      var diff = endTime - Date.now();
-      var el = document.getElementById('countdown');
-      if(diff <= 0){ el.textContent = '⏰ Offer ended!'; return; }
-      var h = String(Math.floor(diff/3600000)).padStart(2,'0');
-      var m = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
-      var s = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
-      el.textContent = '⏳ Offer ends in: ' + h + ':' + m + ':' + s;
-      setTimeout(tick, 1000);
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Candella – Luxury Sand Candles & Home Antiques</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Promo bar ── */
+    .promo-bar {
+      background: var(--navy);
+      color: white;
+      text-align: center;
+      padding: 9px 20px;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
     }
-    tick();
-  </script>
+    .promo-bar span { color: var(--gold); }
+
+    /* ── Landing ── */
+    .landing-page {
+      min-height: calc(100vh - 38px);
+      background: var(--cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 16px;
+    }
+
+    .landing-wrapper { width: min(480px, 100%); }
+
+    .landing-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 48px 36px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.06);
+      text-align: center;
+    }
+
+    .landing-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 56px;
+      font-weight: 300;
+      color: var(--navy);
+      letter-spacing: 8px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .landing-subtitle {
+      font-size: 13px;
+      line-height: 1.8;
+      color: #888;
+      margin: 0 auto 20px;
+      max-width: 340px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .landing-countdown {
+      margin: 14px 0 24px;
+      font-weight: 600;
+      color: var(--navy);
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+
+    /* ── Google Sign-In section ── */
+    .auth-section {
+      margin: 0 0 22px;
+      padding: 20px;
+      background: var(--cream);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .auth-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #aaa;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .google-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 13px 20px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      background: white;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: #444;
+      transition: 0.2s;
+      letter-spacing: 0.5px;
+    }
+    .google-btn:hover { border-color: #bbb; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .google-btn img { width: 18px; height: 18px; }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: center;
+    }
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--gold);
+    }
+    .user-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--navy);
+    }
+    .user-email {
+      font-size: 11px;
+      color: #aaa;
+    }
+    .sign-out-link {
+      font-size: 11px;
+      color: #bbb;
+      cursor: pointer;
+      margin-left: 4px;
+      text-decoration: underline;
+      background: none;
+      border: none;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .sign-out-link:hover { color: #e74c3c; }
+    .auth-saving {
+      font-size: 11px;
+      color: #27ae60;
+      margin-top: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0;
+      color: #ddd;
+      font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #eee;
+    }
+
+    /* ── Marquee ticker ── */
+    .ticker-wrap {
+      background: var(--navy);
+      overflow: hidden;
+      padding: 10px 0;
+      white-space: nowrap;
+    }
+    .ticker-track {
+      display: inline-block;
+      animation: ticker 22s linear infinite;
+    }
+    .ticker-track:hover { animation-play-state: paused; }
+    @keyframes ticker {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .ticker-item {
+      display: inline-block;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: white;
+      padding: 0 32px;
+    }
+    .ticker-item .ticker-dot {
+      color: var(--gold);
+      margin: 0 8px;
+      font-size: 16px;
+      vertical-align: middle;
+    }
+    .ticker-item .ticker-brand {
+      color: var(--gold);
+      font-style: italic;
+    }
+
+    .landing-footer { font-size: 11px; color: #ccc; margin-top: 28px; letter-spacing: 1px; }
+  </style>
+</head>
+<body class="landing-page" style="padding:0;display:block;">
+
+  <!-- Marquee Ticker -->
+  <div class="ticker-wrap">
+    <div class="ticker-track">
+      <span class="ticker-item"><span class="ticker-brand">Candella</span> <span class="ticker-dot">✦</span> Sand Candles</span>
+      <span class="ticker-item"><span class="ticker-brand">Candella</span> <span class="ticker-dot">✦</span> Aromatic Oils</span>
+      <span class="ticker-item"><span class="ticker-brand">Candella</span> <span class="ticker-dot">✦</span> Home Antiques</span>
+      <span class="ticker-item"><span class="ticker-brand">Candella</span> <span class="ticker-dot">✦</span> Luxury Collection</span>
+      <span class="ticker-item"><span class="ticker-brand">Candella</span> <span class="ticker-dot">✦</span> Sand Candles</span>
+      <span class="ticker-item"><span class="ticker-brand">Candella</span> <span class="ticker-dot">✦</span> Aromatic Oils</span>
+      <span class="ticker-item"><span class="ticker-brand">Candella</span> <span class="ticker-dot">✦</span> Home Antiques</span>
+      <span class="ticker-item"><span class="ticker-brand">Candella</span> <span class="ticker-dot">✦</span> Luxury Collection</span>
+    </div>
+  </div>
+
+  <div class="landing-page">
+    <div class="landing-wrapper">
+      <div class="landing-card">
+
+        <div class="landing-title">Candella</div>
+        <p class="landing-subtitle">
+          Luxury Sand Candles · Aromatic Oils &amp; Home Antiques.
+        </p>
+
+        <!-- Promo Banner -->
+        <div style="margin: 4px 0 22px; padding: 11px 16px; background: var(--navy); border-radius: 4px; text-align: center;">
+          <p style="color: white; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin: 0;">
+            Orders over <span style="color: var(--gold);">2,000 EGP</span> get <span style="color: var(--gold);">FREE Shipping</span> — across all governorates
+          </p>
+        </div>
+
+        <a href="home.html" class="landing-btn landing-btn-primary">
+          <i class="fa-solid fa-cart-shopping"></i> Shop Now
+        </a>
+
+        <a href="https://wa.me/201515346534" class="landing-btn landing-btn-dark" target="_blank">
+          <i class="fab fa-whatsapp"></i> WhatsApp
+        </a>
+
+        <a href="https://www.instagram.com/candella_egy?igsh=eHo2dHp2ZGVxeGp5&utm_source=qr" class="landing-btn landing-btn-dark" target="_blank">
+          <i class="fab fa-instagram"></i> Instagram
+        </a>
+
+        <p class="landing-footer">© 2026 Candella. All Rights Reserved.</p>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

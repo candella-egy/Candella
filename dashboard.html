@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Candella – Admin Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
@@ -17,7 +17,7 @@
       --card: #faf6ef;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family: 'Lato', sans-serif; background: #ede8df; color: #111; min-height: 100vh; }
+    body { font-family: 'Montserrat', sans-serif; background: #ede8df; color: #111; min-height: 100vh; }
 
     /* ===== NAVBAR ===== */
     .dash-nav {
@@ -35,7 +35,7 @@
     .dash-nav .nav-links { display: flex; gap: 20px; align-items: center; }
     .dash-nav a { color: #ccc; text-decoration: none; font-size: 14px; font-weight: 700; transition: 0.2s; }
     .dash-nav a:hover { color: var(--gold); }
-    .logout-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(201,162,77,0.3); color: #ccc !important; padding: 7px 16px; border-radius: 999px; cursor: pointer; font-family: 'Lato', sans-serif; font-size: 13px; font-weight: 700; transition: 0.2s; }
+    .logout-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(201,162,77,0.3); color: #ccc !important; padding: 7px 16px; border-radius: 999px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700; transition: 0.2s; }
     .logout-btn:hover { background: rgba(201,162,77,0.2); color: var(--gold) !important; }
 
     /* ===== LOGIN ===== */
@@ -60,13 +60,13 @@
     .login-input {
       width: 100%; padding: 13px 16px; margin-bottom: 14px;
       border: 2px solid #ddd4c0; border-radius: 12px;
-      font-family: 'Lato', sans-serif; font-size: 15px;
+      font-family: 'Montserrat', sans-serif; font-size: 15px;
       background: #f5f0e8; outline: none; transition: 0.2s;
     }
     .login-input:focus { border-color: var(--gold); background: #fffdf8; box-shadow: 0 0 0 3px rgba(201,162,77,0.12); }
     .login-btn {
       width: 100%; padding: 14px; border-radius: 999px; border: none;
-      background: var(--gold); color: white; font-family: 'Lato', sans-serif;
+      background: var(--gold); color: white; font-family: 'Montserrat', sans-serif;
       font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.2s;
       box-shadow: 0 5px 20px rgba(201,162,77,0.3);
     }
@@ -108,14 +108,14 @@
 
     .search-input {
       padding: 9px 16px; border: 2px solid #ddd4c0; border-radius: 999px;
-      font-family: 'Lato', sans-serif; font-size: 14px; background: #f5f0e8;
+      font-family: 'Montserrat', sans-serif; font-size: 14px; background: #f5f0e8;
       outline: none; transition: 0.2s; min-width: 200px;
     }
     .search-input:focus { border-color: var(--gold); background: #fffdf8; }
 
     .filter-select {
       padding: 9px 16px; border: 2px solid #ddd4c0; border-radius: 999px;
-      font-family: 'Lato', sans-serif; font-size: 14px; background: #f5f0e8;
+      font-family: 'Montserrat', sans-serif; font-size: 14px; background: #f5f0e8;
       outline: none; cursor: pointer; transition: 0.2s;
     }
     .filter-select:focus { border-color: var(--gold); }
@@ -145,7 +145,7 @@
 
     .action-btn {
       padding: 6px 12px; border-radius: 999px; border: none; cursor: pointer;
-      font-family: 'Lato', sans-serif; font-size: 12px; font-weight: 700; transition: 0.2s;
+      font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 700; transition: 0.2s;
       margin-left: 4px;
     }
     .btn-view { background: #111; color: white; }
@@ -188,12 +188,12 @@
 
     .status-select {
       padding: 7px 14px; border: 2px solid #ddd4c0; border-radius: 999px;
-      font-family: 'Lato', sans-serif; font-size: 13px; background: #f5f0e8;
+      font-family: 'Montserrat', sans-serif; font-size: 13px; background: #f5f0e8;
       font-weight: 700; cursor: pointer; outline: none; margin-top: 16px; width: 100%;
     }
     .save-status-btn {
       width: 100%; padding: 12px; border-radius: 999px; border: none; margin-top: 10px;
-      background: var(--gold); color: white; font-family: 'Lato', sans-serif;
+      background: var(--gold); color: white; font-family: 'Montserrat', sans-serif;
       font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.2s;
     }
     .save-status-btn:hover { background: var(--gold-2); }
@@ -217,7 +217,7 @@
     .export-btn {
       padding: 9px 20px; border-radius: 999px; border: none;
       background: #1d6f42; color: white;
-      font-family: 'Lato', sans-serif; font-size: 13px; font-weight: 700;
+      font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700;
       cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px;
     }
     .export-btn:hover { background: #155232; transform: translateY(-1px); }
@@ -281,7 +281,7 @@
         </div>
         <div class="stat-card">
           <div class="stat-icon">💰</div>
-          <div class="stat-num" id="statRevenue">$0</div>
+          <div class="stat-num" id="statRevenue">EGP 0</div>
           <div class="stat-label">Net Revenue</div>
         </div>
       </div>
@@ -299,15 +299,27 @@
         </div>
       </div>
 
+      <!-- Daily Export -->
+      <div class="export-section">
+        <h3><i class="fa-solid fa-calendar-day"></i> تقرير يومي</h3>
+        <div class="export-row">
+          <input type="date" class="filter-select" id="exportDay" style="padding:9px 16px;min-width:160px;" />
+          <button class="export-btn" onclick="exportDaily()" style="background:#1a5276;">
+            <i class="fa-solid fa-download"></i> تحميل تقرير اليوم
+          </button>
+        </div>
+      </div>
+
       <!-- Toolbar -->
       <div class="dash-toolbar">
         <h2>📋 Orders</h2>
         <div class="toolbar-right">
-          <input class="search-input" type="text" id="searchInput" placeholder="🔍 Search by name or phone..." oninput="renderOrders()" />
+          <input class="search-input" type="text" id="searchInput" placeholder="🔍 رقم الطلب، الاسم، أو التليفون..." oninput="renderOrders()" />
           <select class="filter-select" id="statusFilter" onchange="renderOrders()">
             <option value="all">All Status</option>
             <option value="new">New</option>
             <option value="confirmed">Confirmed</option>
+            <option value="shipped">Out for Delivery</option>
             <option value="delivered">Delivered</option>
             <option value="cancelled">Cancelled</option>
           </select>
@@ -342,6 +354,14 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- PRODUCT DETAIL POPUP -->
+  <div class="modal-overlay" id="productPopupOverlay" onclick="closeProductPopup(event)">
+    <div class="modal" id="productPopup" style="max-width:380px;padding:24px;">
+      <button class="modal-close" onclick="document.getElementById('productPopupOverlay').classList.remove('show')">&#10005;</button>
+      <div id="productPopupContent"></div>
     </div>
   </div>
 
@@ -439,7 +459,7 @@
       document.getElementById('statNew').textContent = allOrders.filter(o => o.status === 'new').length;
       document.getElementById('statConfirmed').textContent = allOrders.filter(o => o.status === 'confirmed').length;
       document.getElementById('statCancelled').textContent = cancelled.length;
-      document.getElementById('statRevenue').textContent = '$' + rev;
+      document.getElementById('statRevenue').textContent = 'EGP ' + rev;
     }
 
     // ===== RENDER TABLE =====
@@ -450,7 +470,9 @@
       let filtered = allOrders.filter(o => {
         const matchSearch = !search ||
           (o.customer.fullName||'').toLowerCase().includes(search) ||
-          (o.customer.phone||'').includes(search);
+          (o.customer.phone||'').includes(search) ||
+          (o.shortId||'').includes(search) ||
+          String(o.shortId||'').startsWith(search);
         const matchStatus = status === 'all' || o.status === status;
         return matchSearch && matchStatus;
       });
@@ -473,7 +495,7 @@
           '<td>' + (o.customer.phone||'-') + '</td>' +
           '<td>' + (o.customer.governorate||'-') + '</td>' +
           '<td>' + itemsCount + ' item' + (itemsCount > 1 ? 's' : '') + '</td>' +
-          '<td><strong style="color:' + (isCancelled ? '#aaa;text-decoration:line-through' : 'var(--gold)') + '">$' + o.total + '</strong></td>' +
+          '<td><strong style="color:' + (isCancelled ? '#aaa;text-decoration:line-through' : 'var(--gold)') + '">EGP ' + o.total + '</strong></td>' +
           '<td><span class="badge badge-' + o.status + '">' + o.status.toUpperCase() + '</span></td>' +
           '<td style="font-size:12px;color:#888;">' + dateStr + '</td>' +
           '<td><button class="action-btn btn-view" onclick="viewOrder(\'' + o._id + '\')"><i class="fa-solid fa-eye"></i></button></td>' +
@@ -523,13 +545,13 @@
       // SHEET 1: الطلبات التفصيلية
       // ==========================================
       const ordersData = [
-        ['#', 'Date', 'Customer', 'Phone', 'Governorate', 'Address', 'Items', 'Qty', 'Total ($)', 'Status', 'Notes']
+        ['Order#', 'Date', 'Customer', 'Phone', 'Governorate', 'Address', 'Items (Scent/Size)', 'Qty', 'Subtotal (EGP)', 'Discount (EGP)', 'Shipping (EGP)', 'Total (EGP)', 'Payment', 'Status', 'Promo', 'Notes']
       ];
       [...filtered, ...cancelled].forEach((o, i) => {
-        const itemsStr = o.items.map(it => it.name + ' x' + it.qty).join(' | ');
+        const itemsStr = o.items.map(it => it.name + ' x' + it.qty + (it.scent ? ' ['+it.scent+']' : '') + (it.size ? ' ['+it.size+']' : '')).join(' | ');
         const totalQty = o.items.reduce((s, it) => s + (it.qty||1), 0);
         ordersData.push([
-          i + 1,
+          o.shortId || (i + 1),
           new Date(o.createdAt).toLocaleString('en-GB'),
           o.customer.fullName || '',
           o.customer.phone || '',
@@ -537,18 +559,22 @@
           (o.customer.address || ''),
           itemsStr,
           totalQty,
+          o.subtotal || o.total,
+          o.discount || 0,
+          o.shipping || 0,
           o.status === 'cancelled' ? 0 : o.total,
+          o.paymentMethod || 'cash',
           o.status.toUpperCase(),
+          o.promoCode || '',
           o.customer.notes || ''
         ]);
       });
       // Summary
       const netRev = filtered.reduce((s, o) => s + o.total, 0);
       ordersData.push([]);
-      ordersData.push(['', '', '', '', '', '', '', '', '', '', '']);
-      ordersData.push(['', '', '', '', '', 'Total Active Orders:', filtered.length, '', '', '', '']);
-      ordersData.push(['', '', '', '', '', 'Cancelled Orders:', cancelled.length, '', '', '', '']);
-      ordersData.push(['', '', '', '', '', 'Net Revenue:', '', '', '$' + netRev, '', '']);
+      ordersData.push(['Net Revenue (EGP):', netRev]);
+      ordersData.push(['Active Orders:', filtered.length]);
+      ordersData.push(['Cancelled:', cancelled.length]);
 
       const ws1 = XLSX.utils.aoa_to_sheet(ordersData);
       ws1['!cols'] = [
@@ -576,7 +602,7 @@
       const productsSorted = Object.values(productMap).sort((a, b) => b.totalQty - a.totalQty);
 
       const productsData = [
-        ['Rank', 'Product Name', 'Unit Price ($)', 'Qty Sold', 'Orders Count', 'Total Revenue ($)', '% of Revenue']
+        ['Rank', 'Product Name', 'Unit Price (EGP)', 'Qty Sold', 'Orders Count', 'Total Revenue (EGP)', '% of Revenue']
       ];
       const totalAllRev = productsSorted.reduce((s, p) => s + p.totalRevenue, 0);
       productsSorted.forEach((p, i) => {
@@ -612,12 +638,12 @@
         ['Cancelled Orders', cancelled.length],
         ['Total Orders', filtered.length + cancelled.length],
         [''],
-        ['Net Revenue ($)', netRev],
-        ['Avg Order Value ($)', filtered.length > 0 ? (netRev / filtered.length).toFixed(2) : 0],
+        ['Net Revenue (EGP)', netRev],
+        ['Avg Order Value (EGP)', filtered.length > 0 ? (netRev / filtered.length).toFixed(2) : 0],
         [''],
         ['Top Product', productsSorted.length > 0 ? productsSorted[0].name : '-'],
         ['Top Product Qty Sold', productsSorted.length > 0 ? productsSorted[0].totalQty : 0],
-        ['Top Product Revenue ($)', productsSorted.length > 0 ? productsSorted[0].totalRevenue : 0],
+        ['Top Product Revenue (EGP)', productsSorted.length > 0 ? productsSorted[0].totalRevenue : 0],
         [''],
         ['Most Popular Governorate', getMostPopular(filtered)],
       ];
@@ -639,6 +665,39 @@
       return Object.entries(govMap).sort((a,b) => b[1]-a[1])[0]?.[0] || '-';
     }
 
+    // ===== QUICK STATUS UPDATE =====
+    const STATUS_RANK = {new:0, confirmed:1, shipped:2, delivered:3, cancelled:4};
+
+    function requirePassword(callback) {
+      var pw = prompt('🔐 أدخل باسورد المشرف لتغيير الحالة:');
+      if (pw === null) return;
+      if (pw === 'Doosa@22') { callback(); }
+      else { alert('❌ باسورد غلط.'); }
+    }
+
+    window.quickStatus = async function(id, newStatus) {
+      const o = allOrders.find(x => x._id === id);
+      if (!o) return;
+      const curRank = STATUS_RANK[o.status] ?? 0;
+      const newRank = STATUS_RANK[newStatus] ?? 0;
+      const doUpdate = async function() {
+        try {
+          await updateDoc(doc(db, 'orders', id), { status: newStatus });
+          o.status = newStatus;
+          updateStats();
+          renderOrders();
+        } catch(e) { alert('فشل تحديث الحالة.'); console.error(e); }
+      };
+      // أي رجوع لحالة أقل → باسورد مطلوب دائماً
+      if (newRank < curRank) {
+        requirePassword(doUpdate);
+      } else {
+        const labels = { confirmed:'تأكيد الطلب؟', shipped:'تحديد كـ خرج للتوصيل؟', delivered:'تحديد كـ تم التسليم؟' };
+        if (!confirm(labels[newStatus] || 'تحديث الحالة؟')) return;
+        await doUpdate();
+      }
+    }
+
     // ===== VIEW ORDER MODAL =====
     window.viewOrder = function(id) {
       const o = allOrders.find(x => x._id === id);
@@ -654,19 +713,33 @@
         '<div class="modal-row"><span>Address</span><span style="max-width:280px;">' + (o.customer.address||'-') + '</span></div>' +
         (o.customer.notes ? '<div class="modal-row"><span>Notes</span><span>' + o.customer.notes + '</span></div>' : '') +
         '<div class="modal-items">' +
-          o.items.map(it =>
-            '<div class="modal-item">' +
-              (it.img ? '<img src="' + it.img + '" />' : '<div style="width:48px;height:48px;background:#ede8df;border-radius:8px;display:flex;align-items:center;justify-content:center;">🕯️</div>') +
-              '<div><div class="modal-item-name">' + it.name + '</div><div class="modal-item-sub">Qty: ' + it.qty + ' × $' + it.price + '</div></div>' +
-              '<div style="margin-left:auto;font-weight:700;color:var(--gold);">$' + (it.qty * it.price) + '</div>' +
-            '</div>'
-          ).join('') +
+          o.items.map(function(it) {
+            var itJson = JSON.stringify({name:it.name,img:(it.img||''),price:it.price,qty:it.qty,scent:(it.scent||''),size:(it.size||''),desc:(it.desc||'')});
+            var enc = encodeURIComponent(itJson);
+            return '<div class="modal-item" style="cursor:pointer;border-radius:6px;padding:10px 6px;transition:background 0.2s;" '
+              + 'ondblclick="showItemDetail(\'' + enc + '\')" '
+              + 'title="انقر مرتين لعرض التفاصيل">'
+              + (it.img ? '<img src="' + it.img + '" />' : '<div style="width:48px;height:48px;background:#ede8df;border-radius:8px;text-align:center;line-height:48px;">🕯️</div>')
+              + '<div style="flex:1"><div class="modal-item-name">' + it.name + '</div>'
+              + '<div class="modal-item-sub">Qty: ' + it.qty + ' × EGP ' + it.price + (it.scent ? ' · ' + it.scent : '') + (it.size ? ' · ' + it.size : '') + '</div></div>'
+              + '<div style="font-weight:700;color:var(--gold);">EGP ' + (it.qty * it.price) + '</div>'
+              + '<span style="font-size:10px;color:#bbb;margin-left:4px;" title="انقر مرتين">⤡</span>'
+              + '</div>';
+          }).join('') +
         '</div>' +
-        '<div class="modal-total">Total: $' + o.total + '</div>' +
+        '<div class="modal-total">' +
+          '<div style="font-size:12px;color:#888;margin-bottom:4px;">' +
+            'Subtotal: EGP ' + (o.subtotal || o.total) +
+            (o.discount ? ' · Discount: -EGP ' + o.discount : '') +
+            ' · Shipping: EGP ' + (o.shipping || 0) +
+          '</div>' +
+          'Total: EGP ' + o.total +
+        '</div>' +
         '<select class="status-select" id="modalStatus">' +
           '<option value="new"' + (o.status==='new'?' selected':'') + '>🆕 New</option>' +
           '<option value="confirmed"' + (o.status==='confirmed'?' selected':'') + '>✅ Confirmed</option>' +
-          '<option value="delivered"' + (o.status==='delivered'?' selected':'') + '>🚚 Delivered</option>' +
+          '<option value="shipped"' + (o.status==='shipped'?' selected':'') + '>🚚 Out for Delivery</option>' +
+          '<option value="delivered"' + (o.status==='delivered'?' selected':'') + '>🏠 Delivered</option>' +
           '<option value="cancelled"' + (o.status==='cancelled'?' selected':'') + '>❌ Cancelled</option>' +
         '</select>' +
         '<button class="save-status-btn" onclick="updateStatus(\'' + o._id + '\')">💾 Save Status</button>';
@@ -678,22 +751,113 @@
       const newStatus = document.getElementById('modalStatus').value;
       const o = allOrders.find(x => x._id === id);
       if (!o) return;
-      try {
-        await updateDoc(doc(db, 'orders', id), { status: newStatus });
-        o.status = newStatus;
-        updateStats();
-        renderOrders();
-        closeModal();
-      } catch(e) {
-        alert('❌ Failed to update status.');
-        console.error(e);
-      }
+      const curRank = STATUS_RANK[o.status] ?? 0;
+      const newRank = STATUS_RANK[newStatus] ?? 0;
+      const doSave = async function() {
+        try {
+          await updateDoc(doc(db, 'orders', id), { status: newStatus });
+          o.status = newStatus;
+          updateStats();
+          renderOrders();
+          closeModal();
+        } catch(e) { alert('❌ فشل تحديث الحالة.'); console.error(e); }
+      };
+      // أي رجوع لحالة أقل → باسورد مطلوب دائماً
+      if (newRank < curRank) { requirePassword(doSave); }
+      else { await doSave(); }
+    }
+
+    // ===== PRODUCT DETAIL POPUP =====
+    window.showItemDetail = function(enc) {
+      var it = JSON.parse(decodeURIComponent(enc));
+      document.getElementById('productPopupContent').innerHTML =
+        '<h3 style="font-family:\'Playfair Display\',serif;font-size:18px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid rgba(201,162,77,0.2);">🕯️ تفاصيل المنتج</h3>' +
+        (it.img ? '<img src="' + it.img + '" style="width:100%;height:200px;object-fit:cover;border-radius:10px;margin-bottom:16px;" />' : '') +
+        '<div class="modal-row"><span>الاسم</span><span style="font-weight:900;color:#111;">' + it.name + '</span></div>' +
+        (it.desc ? '<div class="modal-row"><span>الوصف</span><span>' + it.desc + '</span></div>' : '') +
+        '<div class="modal-row"><span>السعر</span><span style="color:var(--gold);font-weight:700;">EGP ' + it.price + '</span></div>' +
+        '<div class="modal-row"><span>الكمية</span><span>' + it.qty + '</span></div>' +
+        '<div class="modal-row"><span>الإجمالي</span><span style="color:var(--gold);font-weight:700;">EGP ' + (it.qty * it.price) + '</span></div>' +
+        (it.scent ? '<div class="modal-row"><span>العطر</span><span>' + it.scent + '</span></div>' : '') +
+        (it.size  ? '<div class="modal-row"><span>الحجم</span><span>' + it.size + '</span></div>' : '');
+      document.getElementById('productPopupOverlay').classList.add('show');
+    }
+
+    window.closeProductPopup = function(e) {
+      if (e && e.target !== document.getElementById('productPopupOverlay')) return;
+      document.getElementById('productPopupOverlay').classList.remove('show');
+    }
+
+    // ===== DAILY EXPORT =====
+    window.exportDaily = function() {
+      var dayVal = document.getElementById('exportDay').value;
+      if (!dayVal) { alert('من فضلك اختر يوم أولاً'); return; }
+
+      var [year, month, day] = dayVal.split('-').map(Number);
+      var dayLabel = new Date(year, month-1, day).toLocaleDateString('ar-EG', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+      var dayOrders = allOrders.filter(function(o) {
+        var d = new Date(o.createdAt);
+        return d.getFullYear()===year && d.getMonth()+1===month && d.getDate()===day && o.status!=='cancelled';
+      });
+
+      if (dayOrders.length === 0) { alert('لا يوجد طلبات في هذا اليوم'); return; }
+
+      var wb = XLSX.utils.book_new();
+
+      // ── الورقة 1: الأصناف باعدادها (للتجهيز) ──
+      var productMap = {};
+      dayOrders.forEach(function(o) {
+        o.items.forEach(function(it) {
+          var key = it.name + (it.scent ? ' [' + it.scent + ']' : '') + (it.size ? ' [' + it.size + ']' : '');
+          if (!productMap[key]) productMap[key] = { name:it.name, scent:it.scent||'', size:it.size||'', price:it.price, qty:0 };
+          productMap[key].qty += (it.qty||1);
+        });
+      });
+      var items1 = [['Candella – قائمة التجهيز اليومي'], [dayLabel], ['']];
+      items1.push(['المنتج', 'العطر / الحجم', 'السعر (EGP)', 'الكمية المطلوبة', 'الإجمالي (EGP)']);
+      Object.values(productMap).sort(function(a,b){return b.qty-a.qty;}).forEach(function(p) {
+        items1.push([p.name, (p.scent||p.size||'-'), p.price, p.qty, p.price*p.qty]);
+      });
+      items1.push([]);
+      items1.push(['إجمالي عدد الأصناف:', Object.values(productMap).reduce(function(s,p){return s+p.qty;},0)]);
+      var ws1 = XLSX.utils.aoa_to_sheet(items1);
+      ws1['!cols'] = [{wch:30},{wch:16},{wch:14},{wch:16},{wch:14}];
+      XLSX.utils.book_append_sheet(wb, ws1, 'قائمة التجهيز');
+
+      // ── الورقة 2: كل طلب بالرقم والتفاصيل ──
+      var items2 = [['Candella – تفاصيل طلبات اليوم'], [dayLabel], ['']];
+      items2.push(['رقم الطلب', 'العميل', 'التليفون', 'المحافظة', 'المنتجات', 'الكمية', 'Subtotal (EGP)', 'شحن (EGP)', 'الإجمالي (EGP)', 'الحالة', 'الوقت']);
+      dayOrders.forEach(function(o) {
+        var itemsStr = o.items.map(function(it){return it.name+' ×'+it.qty+(it.scent?'['+it.scent+']':'')+(it.size?'['+it.size+']':'');}).join(' | ');
+        var totalQty = o.items.reduce(function(s,it){return s+(it.qty||1);},0);
+        var t = new Date(o.createdAt);
+        var timeStr = t.toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'});
+        items2.push([
+          o.shortId||'-', o.customer.fullName||'', o.customer.phone||'',
+          o.customer.governorate||'', itemsStr, totalQty,
+          o.subtotal||o.total, o.shipping||0, o.total,
+          o.status.toUpperCase(), timeStr
+        ]);
+      });
+      items2.push([]);
+      items2.push(['إجمالي الإيراد:', '', '', '', '', '', '', '', dayOrders.reduce(function(s,o){return s+o.total;},0)]);
+      var ws2 = XLSX.utils.aoa_to_sheet(items2);
+      ws2['!cols'] = [{wch:8},{wch:22},{wch:14},{wch:14},{wch:35},{wch:8},{wch:12},{wch:10},{wch:12},{wch:12},{wch:8}];
+      XLSX.utils.book_append_sheet(wb, ws2, 'تفاصيل الطلبات');
+
+      var fname = 'Candella_يوم_' + dayVal + '.xlsx';
+      XLSX.writeFile(wb, fname);
     }
 
     window.closeModal = function(e) {
       if (e && e.target !== document.getElementById('modalOverlay')) return;
       document.getElementById('modalOverlay').classList.remove('show');
     }
+
+    // Set today as default for daily export
+    var today = new Date().toISOString().slice(0,10);
+    document.getElementById('exportDay').value = today;
 
     if (sessionStorage.getItem('candella_admin')) loadOrders();
   </script>

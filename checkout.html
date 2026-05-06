@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Candella – Checkout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="style.css" />
   <style>
     .cancel-box{margin:14px 0 0;padding:10px 14px;background:#fff8f0;border:1px solid #f0d9c0;border-radius:8px}
     .cancel-label{font-size:12px;color:#888;margin-bottom:8px;line-height:1.4}
     .cancel-label strong{color:#e67e22;font-size:13px;font-family:'Cormorant Garamond',serif}
-    .cancel-order-btn{width:100%;padding:7px;border-radius:5px;border:1px solid #e74c3c;background:transparent;color:#e74c3c;font-family:'Jost',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;transition:.2s}
+    .cancel-order-btn{width:100%;padding:7px;border-radius:5px;border:1px solid #e74c3c;background:transparent;color:#e74c3c;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;transition:.2s}
     .cancel-order-btn:hover:not(:disabled){background:#e74c3c;color:white}
 
     /* ── Order number box ── */
@@ -20,7 +20,7 @@
     .onum-label{font-size:10px;opacity:.65;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:10px}
     .onum-digits{font-family:'Cormorant Garamond',serif;font-size:58px;font-weight:700;letter-spacing:14px;color:#f0c97f;line-height:1;display:block}
     .onum-hint{font-size:11px;opacity:.55;margin-top:10px;letter-spacing:.8px}
-    .track-order-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;margin-top:10px;background:transparent;border:1px solid var(--navy);color:var(--navy);border-radius:4px;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;text-decoration:none;transition:.2s}
+    .track-order-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;margin-top:10px;background:transparent;border:1px solid var(--navy);color:var(--navy);border-radius:4px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;text-decoration:none;transition:.2s}
     .track-order-btn:hover{background:var(--navy);color:white}
 
     /* ── Payment options ── */
@@ -69,7 +69,7 @@
     .fref-num{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:700;letter-spacing:8px;color:#c8891a;line-height:1}
     .fref-hint{font-size:12px;color:#888;margin-top:10px;line-height:1.6}
     .fref-hint strong{color:#c8891a}
-    .fref-copy-btn{margin-top:12px;padding:8px 20px;border-radius:4px;border:1px solid #f7a800;background:transparent;color:#c8891a;font-family:'Jost',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:.2s}
+    .fref-copy-btn{margin-top:12px;padding:8px 20px;border-radius:4px;border:1px solid #f7a800;background:transparent;color:#c8891a;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:.2s}
     .fref-copy-btn:hover{background:#f7a800;color:white}
 
     /* config warning banner */
@@ -95,7 +95,7 @@
     </div>
   </div>
 
-  <div class="top-bar">FREE SHIPPING ON ORDERS OVER 5000 EGP</div>
+  <div class="top-bar">FREE SHIPPING ON ORDERS OVER 2,000 EGP</div>
   <nav class="navbar">
     <a href="home.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Shop</a>
     <div class="logo">Candella</div>
@@ -106,7 +106,30 @@
     <div class="order-summary">
       <h3>📦 Order Summary</h3>
       <div id="summaryItems"></div>
-      <div class="summary-total">Total: <strong>EGP <span id="summaryTotal">0</span></strong></div>
+      <!-- Pricing breakdown -->
+      <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:14px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#888;margin-bottom:6px;">
+          <span>Subtotal</span><span>EGP <span id="subtotalVal">0</span></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#888;margin-bottom:6px;" id="discountRow" style="display:none;">
+          <span>Discount <span id="discountPct" style="font-size:10px;background:var(--gold);color:white;padding:1px 6px;border-radius:3px;margin-left:4px;"></span></span>
+          <span style="color:#27ae60;">- EGP <span id="discountVal">0</span></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#888;margin-bottom:10px;" id="shippingRow">
+          <span>Shipping</span><span id="shippingVal">EGP <span id="shippingNum">0</span></span>
+        </div>
+        <!-- Promo code -->
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="promoInput" placeholder="Promo code" style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:1px;" oninput="this.value=this.value.toUpperCase()" />
+            <button onclick="applyPromo()" style="padding:8px 14px;background:var(--navy);color:white;border:none;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;cursor:pointer;">APPLY</button>
+          </div>
+          <div id="promoMsg" style="font-size:11px;margin-top:5px;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;color:var(--navy);border-top:1px solid var(--border);padding-top:10px;">
+          <span>Total</span><span>EGP <span id="summaryTotal">0</span></span>
+        </div>
+      </div>
       <div id="cancelBoxContainer"></div>
     </div>
 
@@ -211,7 +234,7 @@
   <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, doc, updateDoc, query, where, getDocs }
+    import { getFirestore, collection, addDoc, doc, updateDoc, query, where, getDocs, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     const app = initializeApp({
       apiKey:"AIzaSyA-pMJRCHDvO4eqnp7Hn6Rj3iTQTEjcR-U",
@@ -225,6 +248,7 @@
     window.db=db; window.addDoc=addDoc; window.collection=collection;
     window.doc=doc; window.updateDoc=updateDoc;
     window._query=query; window._where=where; window._getDocs=getDocs;
+    window._serverTimestamp=serverTimestamp;
   </script>
 
   <script>
@@ -255,20 +279,86 @@
     var cart = JSON.parse(localStorage.getItem('candella_cart') || '[]');
     var savedOrderData = null;
 
+    // ── Promo codes (15% discount each) ──
+    var PROMO_CODES = ['CNDL15A','CNDL15B','CNDL15C','CNDL15D','CNDL15E','CNDL15F','CNDL15G','CNDL15H','CNDL15J','CNDL15K'];
+    var PROMO_DISCOUNT_PCT = 15;
+    var SHIPPING_FEES = {
+      'Cairo': 85, 'Giza': 75, 'Alexandria': 85, 'Qalyubia': 85,
+      'Dakahlia': 85, 'Beheira': 85, 'Gharbia': 85, 'Sharqia': 85,
+      'Monufia': 85, 'Faiyum': 70, 'Beni Suef': 70, 'Minya': 75,
+      'Assiut': 100, 'Sohag': 115, 'Qena': 120, 'Luxor': 150,
+      'Aswan': 150, 'Red Sea': 150, 'South Sinai': 150, 'North Sinai': 250,
+      'Port Said': 100, 'Ismailia': 100, 'Suez': 100, 'Damietta': 100,
+      'Kafr El Sheikh': 95, 'Matrouh': 150, 'New Valley': 190
+    };
+    var FREE_SHIPPING_THRESHOLD = 2000;
+    var appliedPromo = null;
+
+    function getSubtotal() { return cart.reduce(function(s,c){ return s + c.price * c.qty; }, 0); }
+    function getDiscount(subtotal) { return appliedPromo ? Math.round(subtotal * PROMO_DISCOUNT_PCT / 100) : 0; }
+    function getShipping(afterDisc, sub) {
+      // الشحن المجاني يتحسب على الـ subtotal الأصلي قبل الخصم
+      if((sub || afterDisc) >= FREE_SHIPPING_THRESHOLD) return 0;
+      var gov = (document.getElementById('governorate') || {}).value || '';
+      return SHIPPING_FEES[gov] || 80;
+    }
+    function recalcTotals() {
+      var sub = getSubtotal();
+      var disc = getDiscount(sub);
+      var afterDisc = sub - disc;
+      var ship = getShipping(afterDisc, sub);
+      var total = afterDisc + ship;
+      var subtotalEl = document.getElementById('subtotalVal');
+      if(subtotalEl) subtotalEl.textContent = sub;
+      var discRow = document.getElementById('discountRow');
+      if(discRow) {
+        discRow.style.display = disc > 0 ? 'flex' : 'none';
+        var discPct = document.getElementById('discountPct');
+        if(discPct) discPct.textContent = '-' + PROMO_DISCOUNT_PCT + '%';
+        var discVal = document.getElementById('discountVal');
+        if(discVal) discVal.textContent = disc;
+      }
+      var shipVal = document.getElementById('shippingVal');
+      if(shipVal) {
+        if(ship === 0) shipVal.innerHTML = '<span style="color:#27ae60;font-weight:700;">FREE</span>';
+        else shipVal.innerHTML = 'EGP ' + ship;
+      }
+      var totalEl = document.getElementById('summaryTotal');
+      if(totalEl) totalEl.textContent = total;
+      return { subtotal: sub, discount: disc, shipping: ship, total: total };
+    }
+    document.getElementById('governorate').addEventListener('change', recalcTotals);
+
+    function applyPromo() {
+      var code = document.getElementById('promoInput').value.trim().toUpperCase();
+      var msg = document.getElementById('promoMsg');
+      if(PROMO_CODES.indexOf(code) !== -1) {
+        appliedPromo = code;
+        msg.innerHTML = '<span style="color:#27ae60;">Discount applied! ' + PROMO_DISCOUNT_PCT + '% off</span>';
+        recalcTotals();
+      } else {
+        appliedPromo = null;
+        msg.innerHTML = '<span style="color:#e74c3c;">Invalid promo code</span>';
+        recalcTotals();
+      }
+    }
+    window.applyPromo = applyPromo;
+
     // ── Render summary ──
     var summaryEl = document.getElementById('summaryItems');
     if (cart.length === 0) {
       summaryEl.innerHTML = '<p style="opacity:.6">No items in cart</p>';
     } else {
-      var total = 0;
       summaryEl.innerHTML = cart.map(function(c){
-        total += c.price * c.qty;
+        var sub = '';
+        if(c.scent) sub += '<div class="summary-qty">Scent: ' + c.scent + '</div>';
+        if(c.size)  sub += '<div class="summary-qty">Size: ' + c.size + '</div>';
         return '<div class="summary-item">' +
           '<img src="'+c.img+'" alt="'+c.name+'" />' +
-          '<div><div class="summary-name">'+c.name+'</div><div class="summary-qty">Qty: '+c.qty+'</div></div>' +
+          '<div><div class="summary-name">'+c.name+'</div><div class="summary-qty">Qty: '+c.qty+'</div>' + sub + '</div>' +
           '<div class="summary-price">EGP '+(c.price*c.qty)+'</div></div>';
       }).join('');
-      document.getElementById('summaryTotal').textContent = total;
+      recalcTotals();
     }
 
     // ── Payment selector ──
@@ -314,6 +404,7 @@
     async function submitOrder() {
       if(!validate()) return;
       if(cart.length===0){alert('Your cart is empty!');return;}
+      if(!window.db){alert('Connection error. Please refresh the page and try again.');return;}
 
       // If online payment chosen but not configured → warn and fallback
       if((selectedPayment==='card'||selectedPayment==='fawry') && !PAYMOB_CONFIGURED){
@@ -326,7 +417,7 @@
       btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
 
       var shortId = await generateShortId();
-      var orderTotal = cart.reduce(function(s,c){return s+c.price*c.qty;},0);
+      var pricing = recalcTotals();
 
       savedOrderData = {
         shortId:        shortId,
@@ -338,11 +429,15 @@
           notes:       document.getElementById('notes').value.trim(),
         },
         items:          cart,
-        total:          orderTotal,
+        subtotal:       pricing.subtotal,
+        discount:       pricing.discount,
+        promoCode:      appliedPromo || '',
+        shipping:       pricing.shipping,
+        total:          pricing.total,
         paymentMethod:  selectedPayment,
         paymentStatus:  selectedPayment==='cash'?'cash_on_delivery':'pending',
         status:         'new',
-        createdAt:      new Date()
+        createdAt:      window._serverTimestamp ? window._serverTimestamp() : new Date()
       };
 
       if(selectedPayment==='cash'){
@@ -463,7 +558,7 @@
     ════════════════════════════════════════ */
     async function saveAndShowSuccess(orderData, cardPending) {
       try {
-        var ref = await addDoc(collection(db,'orders'), orderData);
+        var ref = await window.addDoc(window.collection(window.db,'orders'), orderData);
         localStorage.removeItem('candella_cart');
         var t = Date.now();
         localStorage.setItem('candella_last_order', JSON.stringify({
@@ -471,12 +566,12 @@
           firestoreId:ref.id, time:t, status:'new'
         }));
         showSuccessUI(orderData.shortId, ref.id, t, orderData.paymentMethod, cardPending);
-      } catch(e){console.error(e);alert('❌ Error saving order.');resetBtn();}
+      } catch(e){console.error(e);alert('Error saving order: '+e.message);resetBtn();}
     }
 
     async function saveAndShowFawry(orderData, fawryRef) {
       try {
-        var ref = await addDoc(collection(db,'orders'), orderData);
+        var ref = await window.addDoc(window.collection(window.db,'orders'), orderData);
         localStorage.removeItem('candella_cart');
         var t = Date.now();
         localStorage.setItem('candella_last_order', JSON.stringify({
@@ -524,7 +619,7 @@
         '<div class="fawry-ref-box">'+
           '<div class="fref-label">Fawry Reference Code</div>'+
           '<div class="fref-num" id="fawryRefNum">'+(fawryRef||'------')+'</div>'+
-          '<div class="fref-hint">Go to any <strong>Fawry</strong> outlet · Give them this code · Pay <strong>EGP '+savedOrderData.total+'</strong></div>'+
+          '<div class="fref-hint">Go to any <strong>Fawry</strong> outlet · Give them this code · Pay <strong>EGP '+savedOrderData.total+'</strong> (incl. shipping)</div>'+
           '<button class="fref-copy-btn" onclick="copyFawryRef()"><i class="fa-regular fa-copy"></i> Copy Code</button>'+
         '</div>'+
         '<div class="order-num-box" style="margin-top:16px;">'+
@@ -576,4 +671,6 @@
     window.cancelOrder=cancelOrder;
   </script>
 </body>
+</html>
+
 </html>

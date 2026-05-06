@@ -247,7 +247,15 @@
       <h2>Admin Dashboard</h2>
       <p>Enter your credentials to access orders</p>
       <input class="login-input" type="text" id="adminUser" placeholder="Username" />
-      <input class="login-input" type="password" id="adminPass" placeholder="Password" onkeydown="if(event.key==='Enter')login()" />
+      <div style="position:relative;margin-bottom:14px;">
+        <input class="login-input" type="password" id="adminPass" placeholder="Password"
+          onkeydown="if(event.key==='Enter')login()"
+          style="margin-bottom:0;padding-right:48px;width:100%;" />
+        <button onclick="toggleLoginPw()" type="button"
+          style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;">
+          <i class="fa-solid fa-eye" id="loginEyeIcon"></i>
+        </button>
+      </div>
       <button class="login-btn" onclick="login()"><i class="fa-solid fa-lock-open"></i> Login</button>
       <div class="login-err" id="loginErr"></div>
     </div>
@@ -315,6 +323,8 @@
         <h2>📋 Orders</h2>
         <div class="toolbar-right">
           <input class="search-input" type="text" id="searchInput" placeholder="🔍 رقم الطلب، الاسم، أو التليفون..." oninput="renderOrders()" />
+          <input type="date" class="filter-select" id="dateFilter" onchange="renderOrders()" title="فلتر بالتاريخ" style="padding:9px 14px;min-width:150px;" />
+          <button onclick="clearDateFilter()" title="مسح الفلتر" style="padding:9px 12px;border-radius:999px;border:1px solid #ddd4c0;background:#f5f0e8;cursor:pointer;font-size:13px;color:#888;" title="إزالة فلتر التاريخ">✕</button>
           <select class="filter-select" id="statusFilter" onchange="renderOrders()">
             <option value="all">All Status</option>
             <option value="new">New</option>
@@ -357,17 +367,39 @@
     </div>
   </div>
 
+  <!-- PASSWORD MODAL -->
+  <div id="pwModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:900;align-items:center;justify-content:center;">
+    <div style="background:#faf6ef;border-radius:16px;padding:32px 28px;width:min(360px,90%);box-shadow:0 20px 60px rgba(0,0,0,0.25);text-align:center;position:relative;">
+      <button onclick="closePwModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;">✕</button>
+      <div style="font-size:36px;margin-bottom:10px;">🔐</div>
+      <h3 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:6px;color:#111;">تأكيد المشرف</h3>
+      <p style="font-size:12px;color:#aaa;margin-bottom:20px;letter-spacing:0.5px;">أدخل باسورد المشرف لتغيير الحالة</p>
+      <div style="position:relative;margin-bottom:10px;">
+        <input id="pwInput" type="password" placeholder="الباسورد" onkeydown="if(event.key==='Enter')submitPwModal()"
+          style="width:100%;padding:13px 44px 13px 16px;border:2px solid #ddd4c0;border-radius:10px;font-family:'Montserrat',sans-serif;font-size:15px;background:#f5f0e8;outline:none;text-align:center;letter-spacing:3px;transition:0.2s;"
+          onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#ddd4c0'" />
+        <button onclick="togglePwVisibility()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;font-size:16px;">
+          <i class="fa-solid fa-eye" id="pwEyeIcon"></i>
+        </button>
+      </div>
+      <div id="pwErr" style="color:#e74c3c;font-size:12px;min-height:18px;margin-bottom:10px;"></div>
+      <button onclick="submitPwModal()" style="width:100%;padding:13px;border-radius:999px;border:none;background:var(--gold);color:white;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:0.2s;" onmouseover="this.style.background='var(--gold-2)'" onmouseout="this.style.background='var(--gold)'">
+        <i class="fa-solid fa-unlock"></i> تأكيد
+      </button>
+    </div>
+  </div>
+
   <!-- PRODUCT DETAIL POPUP -->
-  <div class="modal-overlay" id="productPopupOverlay" onclick="closeProductPopup(event)">
-    <div class="modal" id="productPopup" style="max-width:380px;padding:24px;">
+  <div class="modal-overlay" id="productPopupOverlay" onclick="closeProductPopup(event)" style="z-index:800;">
+    <div class="modal" id="productPopup" style="max-width:380px;padding:24px;z-index:801;">
       <button class="modal-close" onclick="document.getElementById('productPopupOverlay').classList.remove('show')">&#10005;</button>
       <div id="productPopupContent"></div>
     </div>
   </div>
 
   <!-- ORDER MODAL -->
-  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-    <div class="modal" id="orderModal">
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)" style="z-index:600;">
+    <div class="modal" id="orderModal" style="z-index:601;">
       <button class="modal-close" onclick="closeModal()">&#10005;</button>
       <h3>📦 Order Details</h3>
       <div id="modalContent"></div>
@@ -392,17 +424,45 @@
 
     const ADMIN_USER = 'admin';
     const ADMIN_PASS = 'candella2026';
+    // يوزر ثاني بصلاحيات كاملة بدون باسورد لتغيير الحالة
+    const SUPER_USER = 'doosa';
+    const SUPER_PASS = 'Doosa@22';
     let allOrders = [];
+    let currentUserRole = 'admin'; // 'admin' or 'super'
+
+    // Toggle login password visibility
+    window.toggleLoginPw = function() {
+      var inp = document.getElementById('adminPass');
+      var icon = document.getElementById('loginEyeIcon');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash';
+      } else {
+        inp.type = 'password';
+        icon.className = 'fa-solid fa-eye';
+      }
+    };
 
     // ===== LOGIN =====
     window.login = function() {
       const u = document.getElementById('adminUser').value.trim();
       const p = document.getElementById('adminPass').value.trim();
-      if (u === ADMIN_USER && p === ADMIN_PASS) {
+      let validLogin = false;
+      if (u === ADMIN_USER && p === ADMIN_PASS) { validLogin = true; currentUserRole = 'admin'; }
+      else if (u === SUPER_USER && p === SUPER_PASS) { validLogin = true; currentUserRole = 'super'; }
+
+      if (validLogin) {
         sessionStorage.setItem('candella_admin', '1');
+        sessionStorage.setItem('candella_role', currentUserRole);
         document.getElementById('loginSection').style.display = 'none';
         document.getElementById('dashSection').style.display = 'block';
         loadOrders();
+        // Auto-refresh every 5 seconds
+        setInterval(function() {
+          if (sessionStorage.getItem('candella_admin')) {
+            loadOrders();
+          }
+        }, 5000);
       } else {
         document.getElementById('loginErr').textContent = '❌ Wrong username or password';
       }
@@ -410,11 +470,13 @@
 
     window.logout = function() {
       sessionStorage.removeItem('candella_admin');
+      sessionStorage.removeItem('candella_role');
       document.getElementById('loginSection').style.display = 'flex';
       document.getElementById('dashSection').style.display = 'none';
     }
 
     if (sessionStorage.getItem('candella_admin')) {
+      currentUserRole = sessionStorage.getItem('candella_role') || 'admin';
       document.getElementById('loginSection').style.display = 'none';
       document.getElementById('dashSection').style.display = 'block';
     }
@@ -463,9 +525,15 @@
     }
 
     // ===== RENDER TABLE =====
+    window.clearDateFilter = function() {
+      document.getElementById('dateFilter').value = '';
+      renderOrders();
+    };
+
     function renderOrders() {
       const search = document.getElementById('searchInput').value.toLowerCase();
       const status = document.getElementById('statusFilter').value;
+      const dateVal = document.getElementById('dateFilter').value; // format: YYYY-MM-DD
 
       let filtered = allOrders.filter(o => {
         const matchSearch = !search ||
@@ -474,8 +542,21 @@
           (o.shortId||'').includes(search) ||
           String(o.shortId||'').startsWith(search);
         const matchStatus = status === 'all' || o.status === status;
-        return matchSearch && matchStatus;
+        let matchDate = true;
+        if (dateVal) {
+          const oDate = new Date(o.createdAt);
+          const oDateStr = oDate.getFullYear() + '-' +
+            String(oDate.getMonth()+1).padStart(2,'0') + '-' +
+            String(oDate.getDate()).padStart(2,'0');
+          matchDate = oDateStr === dateVal;
+        }
+        return matchSearch && matchStatus && matchDate;
       });
+
+      // لو في فلتر تاريخ → رتب من الأقدم للأحدث، غير كده الأحدث أول
+      if (dateVal) {
+        filtered = filtered.slice().sort(function(a,b){ return new Date(a.createdAt) - new Date(b.createdAt); });
+      }
 
       const tbody = document.getElementById('ordersBody');
       const empty = document.getElementById('emptyState');
@@ -669,11 +750,42 @@
     const STATUS_RANK = {new:0, confirmed:1, shipped:2, delivered:3, cancelled:4};
 
     function requirePassword(callback) {
-      var pw = prompt('🔐 أدخل باسورد المشرف لتغيير الحالة:');
-      if (pw === null) return;
-      if (pw === 'Doosa@22') { callback(); }
-      else { alert('❌ باسورد غلط.'); }
+      // Show custom password modal instead of browser prompt
+      document.getElementById('pwModal').style.display = 'flex';
+      document.getElementById('pwInput').value = '';
+      document.getElementById('pwErr').textContent = '';
+      document.getElementById('pwInput').focus();
+      window._pwCallback = callback;
     }
+
+    window.submitPwModal = function() {
+      var pw = document.getElementById('pwInput').value;
+      if (pw === 'Doosa@22') {
+        document.getElementById('pwModal').style.display = 'none';
+        if (window._pwCallback) window._pwCallback();
+      } else {
+        document.getElementById('pwErr').textContent = '❌ باسورد غلط.';
+        document.getElementById('pwInput').value = '';
+        document.getElementById('pwInput').focus();
+      }
+    };
+
+    window.closePwModal = function() {
+      document.getElementById('pwModal').style.display = 'none';
+      window._pwCallback = null;
+    };
+
+    window.togglePwVisibility = function() {
+      var inp = document.getElementById('pwInput');
+      var icon = document.getElementById('pwEyeIcon');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash';
+      } else {
+        inp.type = 'password';
+        icon.className = 'fa-solid fa-eye';
+      }
+    };
 
     window.quickStatus = async function(id, newStatus) {
       const o = allOrders.find(x => x._id === id);
@@ -688,13 +800,20 @@
           renderOrders();
         } catch(e) { alert('فشل تحديث الحالة.'); console.error(e); }
       };
-      // أي رجوع لحالة أقل → باسورد مطلوب دائماً
-      if (newRank < curRank) {
-        requirePassword(doUpdate);
-      } else {
-        const labels = { confirmed:'تأكيد الطلب؟', shipped:'تحديد كـ خرج للتوصيل؟', delivered:'تحديد كـ تم التسليم؟' };
+      // السوبر يوزر → بدون باسورد دايماً
+      if (currentUserRole === 'super') {
+        const labels = { confirmed:'تأكيد الطلب؟', shipped:'تحديد كـ خرج للتوصيل؟', delivered:'تحديد كـ تم التسليم؟', new:'رجوع لـ New؟', cancelled:'إلغاء الطلب؟' };
         if (!confirm(labels[newStatus] || 'تحديث الحالة؟')) return;
         await doUpdate();
+      } else {
+        // أي رجوع لحالة أقل → باسورد مطلوب دائماً
+        if (newRank < curRank) {
+          requirePassword(doUpdate);
+        } else {
+          const labels = { confirmed:'تأكيد الطلب؟', shipped:'تحديد كـ خرج للتوصيل؟', delivered:'تحديد كـ تم التسليم؟' };
+          if (!confirm(labels[newStatus] || 'تحديث الحالة؟')) return;
+          await doUpdate();
+        }
       }
     }
 
@@ -762,9 +881,14 @@
           closeModal();
         } catch(e) { alert('❌ فشل تحديث الحالة.'); console.error(e); }
       };
-      // أي رجوع لحالة أقل → باسورد مطلوب دائماً
-      if (newRank < curRank) { requirePassword(doSave); }
-      else { await doSave(); }
+      // السوبر يوزر → بدون باسورد
+      if (currentUserRole === 'super') {
+        await doSave();
+      } else if (newRank < curRank) {
+        requirePassword(doSave);
+      } else {
+        await doSave();
+      }
     }
 
     // ===== PRODUCT DETAIL POPUP =====
@@ -859,7 +983,15 @@
     var today = new Date().toISOString().slice(0,10);
     document.getElementById('exportDay').value = today;
 
-    if (sessionStorage.getItem('candella_admin')) loadOrders();
+    if (sessionStorage.getItem('candella_admin')) {
+      loadOrders();
+      // Auto-refresh every 5 seconds
+      setInterval(function() {
+        if (sessionStorage.getItem('candella_admin')) {
+          loadOrders();
+        }
+      }, 5000);
+    }
   </script>
 </body>
 </html>

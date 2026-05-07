@@ -470,7 +470,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA-pMJRCHDvO4eqnp7Hn6Rj3iTQTEjcR-U",
@@ -486,7 +486,7 @@
     window._db = db;
     window._query = query;
     window._where = where;
-    window._getDocs = getDocs;
+    window._onSnapshot = onSnapshot;
     window._collection = collection;
     window._doc = doc;
     window._updateDoc = updateDoc;
@@ -510,7 +510,10 @@
       document.getElementById('autofillHint').classList.add('show');
     }
 
-    window.trackOrder = async function() {
+    // ── Active listener — kept alive after first search ──
+    var _activeListener = null;
+
+    window.trackOrder = function() {
       const num = document.getElementById('orderInput').value.trim();
       const errEl = document.getElementById('searchErr');
       const cardEl = document.getElementById('orderCard');
@@ -526,31 +529,69 @@
         return;
       }
 
+      // Unsubscribe any previous listener
+      if (_activeListener) { _activeListener(); _activeListener = null; }
+
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 
-      try {
-        const q = window._query(
-          window._collection(window._db, 'orders'),
-          window._where('shortId', '==', num)
-        );
-        const snap = await window._getDocs(q);
+      const q = window._query(
+        window._collection(window._db, 'orders'),
+        window._where('shortId', '==', num)
+      );
+
+      var firstCall = true;
+
+      _activeListener = window._onSnapshot(q, function(snap) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Track';
 
         if (snap.empty) {
           nfEl.className = 'not-found visible';
-        } else {
-          const docData = snap.docs[0].data();
-          renderOrderCard(docData, num);
-          cardEl.className = 'order-card visible';
+          cardEl.className = 'order-card';
+          return;
         }
-      } catch(e) {
+
+        nfEl.className = 'not-found';
+        const docData = snap.docs[0].data();
+
+        // لو مش أول مرة → نبعت notification لو الحالة اتغيرت
+        if (!firstCall) {
+          var prevStatus = window._lastKnownStatus;
+          var newStatus  = docData.status;
+          if (prevStatus && prevStatus !== newStatus) {
+            showStatusToast(newStatus);
+          }
+        }
+        window._lastKnownStatus = docData.status;
+        firstCall = false;
+
+        renderOrderCard(docData, num);
+        cardEl.className = 'order-card visible';
+
+      }, function(e) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Track';
         errEl.textContent = '❌ Connection error. Please try again.';
         console.error(e);
-      }
-
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Track';
+      });
     };
+
+    // ── Toast notification لما الحالة تتغير ──
+    function showStatusToast(newStatus) {
+      var labels = {
+        confirmed: '✅ Order Confirmed!',
+        shipped:   '🚚 Out for Delivery!',
+        delivered: '🏠 Order Delivered!',
+        cancelled: '❌ Order Cancelled'
+      };
+      var msg = labels[newStatus] || '🔄 Order Updated';
+      var toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--navy);color:white;padding:14px 28px;border-radius:8px;font-family:Montserrat,sans-serif;font-size:14px;font-weight:600;letter-spacing:1px;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,0.2);animation:fadeUp 0.3s ease;';
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(function() { toast.remove(); }, 4000);
+    }
 
     function renderOrderCard(o, num) {
       const status = o.status || 'new';
@@ -626,8 +667,21 @@
     function buildCancelBox(o, num) {
       var lastOrder = JSON.parse(localStorage.getItem('candella_last_order') || 'null');
       if (!lastOrder || String(lastOrder.shortId) !== String(num)) return '';
-      if (o.status === 'cancelled' || o.status === 'delivered' || o.status === 'shipped') return '';
 
+      // ── الطلب خرج للتوصيل أو اتسلّم → منع الإلغاء نهائياً ──
+      if (o.status === 'shipped') {
+        return '<div class="cancel-box" style="border-color:#e67e22;background:#fff8f0;">' +
+          '<p class="cancel-label" style="color:#e67e22;font-weight:600;">🚚 Your order is already out for delivery — cancellation is no longer available.</p>' +
+          '</div>';
+      }
+      if (o.status === 'delivered') {
+        return '<div class="cancel-box" style="border-color:#27ae60;background:#f0fff4;">' +
+          '<p class="cancel-label" style="color:#27ae60;font-weight:600;">🏠 Your order has been delivered. Thank you!</p>' +
+          '</div>';
+      }
+      if (o.status === 'cancelled') return '';
+
+      // ── تحقق من نافذة الساعة ──
       var remaining = (lastOrder.time + 60 * 60 * 1000) - Date.now();
       if (remaining <= 0) {
         return '<div class="cancel-box"><p class="cancel-label">❌ Cancellation window has closed.</p></div>';
@@ -666,6 +720,14 @@
       var lastOrder = JSON.parse(localStorage.getItem('candella_last_order') || 'null');
       if (!lastOrder || !lastOrder.firestoreId) return;
       if ((lastOrder.time + 60 * 60 * 1000) - Date.now() <= 0) { alert('Cancellation window has closed.'); return; }
+
+      // ── تحقق من الحالة الحالية مباشرة من Firebase قبل الإلغاء ──
+      var currentStatus = window._lastKnownStatus;
+      if (currentStatus === 'shipped' || currentStatus === 'delivered') {
+        alert('❌ Sorry, your order is already out for delivery and cannot be cancelled.');
+        return;
+      }
+
       if (!confirm('Are you sure you want to cancel your order?')) return;
       var btn = document.getElementById('trackCancelBtn');
       if (btn) { btn.disabled = true; btn.textContent = 'Cancelling...'; }
@@ -675,7 +737,6 @@
         localStorage.setItem('candella_last_order', JSON.stringify(lastOrder));
         var box = document.getElementById('trackCancelBox');
         if (box) box.innerHTML = '<p style="color:#e74c3c;font-weight:700;font-size:13px;">❌ Your order has been cancelled.</p>';
-        setTimeout(function() { window.trackOrder(); }, 800);
       } catch(e) {
         console.error(e);
         alert('❌ Failed to cancel. Contact us on WhatsApp.');
@@ -698,3 +759,4 @@
 
 </body>
 </html>
+

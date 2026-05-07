@@ -195,31 +195,7 @@
                 <div class="pay-desc">Pay when your order arrives</div>
               </div>
             </div>
-            <div class="pay-option" id="opt_card" onclick="selectPayment('card')">
-              <input type="radio" name="payMethod" value="card" />
-              <div class="pay-radio-dot"></div>
-              <div class="pay-icon">💳</div>
-              <div class="pay-body">
-                <div class="pay-title">Credit / Debit Card</div>
-                <div class="pay-logos">
-                  <span class="pay-logo logo-visa">VISA</span>
-                  <span class="pay-logo logo-mc">MC</span>
-                  <span class="pay-logo logo-meeza">Meeza</span>
-                </div>
-                <div class="pay-desc" style="margin-top:4px;">Powered by Paymob · Secure 3DS</div>
-              </div>
-              <div class="pay-badge">Online</div>
-            </div>
-            <div class="pay-option" id="opt_fawry" onclick="selectPayment('fawry')">
-              <input type="radio" name="payMethod" value="fawry" />
-              <div class="pay-radio-dot"></div>
-              <div class="pay-icon">🏪</div>
-              <div class="pay-body">
-                <div class="pay-title">Fawry</div>
-                <div class="pay-logos"><span class="pay-logo logo-fawry">Fawry</span></div>
-                <div class="pay-desc" style="margin-top:4px;">Pay at any Fawry outlet near you</div>
-              </div>
-            </div>
+
           </div>
           <span class="err" id="err_payment"></span>
         </div>
@@ -645,6 +621,28 @@
       var cc=document.getElementById('cancelBoxContainer');
       if(!cc) return;
       cc.innerHTML='<div class="cancel-box" id="cancelBox"><p class="cancel-label">Cancel within <strong id="cancelTimer">60:00</strong></p><button class="cancel-order-btn" id="cancelBtn" onclick="cancelOrder()">Cancel Order</button></div>';
+
+      // فحص الحالة من Firebase كل 10 ثواني — لو shipped أو delivered نخفي الخانة
+      var statusCheck = setInterval(async function(){
+        try {
+          var order = JSON.parse(localStorage.getItem('candella_last_order')||'null');
+          if(!order || !order.firestoreId) { clearInterval(statusCheck); return; }
+          var snap = await window._getDocs(window._query(window.collection(window.db,'orders'), window._where('shortId','==',order.shortId)));
+          if(!snap.empty){
+            var st = snap.docs[0].data().status;
+            if(st === 'shipped' || st === 'delivered' || st === 'cancelled'){
+              clearInterval(statusCheck);
+              var box = document.getElementById('cancelBox');
+              if(box){
+                if(st === 'shipped') box.innerHTML = '<p style="font-size:12px;color:#888;">🚚 Your order is out for delivery — cancellation is no longer available.</p>';
+                else if(st === 'delivered') box.innerHTML = '<p style="font-size:12px;color:#27ae60;font-weight:700;">✅ Order delivered!</p>';
+                else if(st === 'cancelled') box.innerHTML = '<p style="color:#e74c3c;font-weight:700;font-size:13px;">❌ Your order has been cancelled.</p>';
+              }
+            }
+          }
+        } catch(e) {}
+      }, 10000);
+
       var end=orderTime+60*60*1000;
       var iv=setInterval(function(){
         var rem=end-Date.now();
@@ -671,6 +669,4 @@
     window.cancelOrder=cancelOrder;
   </script>
 </body>
-</html>
-
 </html>

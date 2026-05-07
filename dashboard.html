@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <style>
     :root {
       --gold: #c9a24d;
@@ -222,6 +222,92 @@
     }
     .export-btn:hover { background: #155232; transform: translateY(-1px); }
 
+    /* ===== CUSTOMER TRACKER TABS ===== */
+    .tracker-section {
+      background: #faf6ef;
+      border: 1px solid rgba(201,162,77,0.15);
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
+    .tracker-header {
+      background: #111;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .tracker-header h2 {
+      font-family: 'Playfair Display', serif;
+      color: var(--gold);
+      font-size: 18px;
+      letter-spacing: 1px;
+    }
+    .tracker-tabs {
+      display: flex;
+      gap: 8px;
+    }
+    .tracker-tab {
+      padding: 8px 20px;
+      border-radius: 999px;
+      border: 2px solid rgba(201,162,77,0.4);
+      background: transparent;
+      color: #aaa;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .tracker-tab.active { background: var(--gold); border-color: var(--gold); color: white; }
+    .tracker-tab:hover:not(.active) { border-color: var(--gold); color: var(--gold); }
+
+    .tracker-body { padding: 0; }
+    .tracker-panel { display: none; }
+    .tracker-panel.active { display: block; }
+
+    .tracker-table { width: 100%; border-collapse: collapse; }
+    .tracker-table th {
+      background: #1a1a1a;
+      color: var(--gold);
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+    .tracker-table td {
+      padding: 13px 16px;
+      border-bottom: 1px solid #ede8df;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+    .tracker-table tr:last-child td { border-bottom: none; }
+    .tracker-table tr:hover td { background: rgba(201,162,77,0.04); }
+
+    .wa-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: #25D366;
+      color: white;
+      text-decoration: none;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+    .wa-btn:hover { background: #1ebe5d; transform: translateY(-1px); }
+
+    .tracker-empty { text-align: center; padding: 40px 20px; color: #aaa; font-size: 14px; }
+
     @media (max-width: 768px) {
       .dash-nav { padding: 14px 18px; }
       .orders-table th:nth-child(4), .orders-table td:nth-child(4),
@@ -283,6 +369,11 @@
           <div class="stat-label">Confirmed</div>
         </div>
         <div class="stat-card">
+          <div class="stat-icon">🏠</div>
+          <div class="stat-num" id="statDelivered">0</div>
+          <div class="stat-label">Delivered</div>
+        </div>
+        <div class="stat-card">
           <div class="stat-icon">❌</div>
           <div class="stat-num" id="statCancelled">0</div>
           <div class="stat-label">Cancelled</div>
@@ -291,6 +382,16 @@
           <div class="stat-icon">💰</div>
           <div class="stat-num" id="statRevenue">EGP 0</div>
           <div class="stat-label">Net Revenue</div>
+        </div>
+        <div class="stat-card" style="border:2px solid rgba(201,162,77,0.35);">
+          <div class="stat-icon">🛍️</div>
+          <div class="stat-num" id="statProductRev">EGP 0</div>
+          <div class="stat-label">Products Revenue</div>
+        </div>
+        <div class="stat-card" style="border:2px solid rgba(39,174,96,0.35);">
+          <div class="stat-icon">🚚</div>
+          <div class="stat-num" id="statShippingRev" style="color:#27ae60;">EGP 0</div>
+          <div class="stat-label">Shipping Revenue</div>
         </div>
       </div>
 
@@ -315,6 +416,62 @@
           <button class="export-btn" onclick="exportDaily()" style="background:#1a5276;">
             <i class="fa-solid fa-download"></i> تحميل تقرير اليوم
           </button>
+        </div>
+      </div>
+
+      <!-- ══ CUSTOMER TRACKER ══ -->
+      <div class="tracker-section">
+        <div class="tracker-header">
+          <h2>📋 Customer Tracker</h2>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div class="tracker-tabs">
+              <button class="tracker-tab active" onclick="switchTab('delivered')">✅ Delivered</button>
+              <button class="tracker-tab" onclick="switchTab('cancelled')">❌ Cancelled</button>
+            </div>
+            <button class="export-btn" onclick="exportTrackerExcel()" style="background:#1d6f42;">
+              <i class="fa-solid fa-file-excel"></i> Export Excel
+            </button>
+          </div>
+        </div>
+        <div class="tracker-body">
+          <!-- Delivered Panel -->
+          <div class="tracker-panel active" id="panel-delivered">
+            <table class="tracker-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Order #</th>
+                  <th>Customer Name</th>
+                  <th>Phone</th>
+                  <th>Governorate</th>
+                  <th>Total (EGP)</th>
+                  <th>Date</th>
+                  <th>WhatsApp</th>
+                </tr>
+              </thead>
+              <tbody id="deliveredBody"></tbody>
+            </table>
+            <div id="deliveredEmpty" class="tracker-empty" style="display:none;">لا يوجد طلبات تم تسليمها بعد</div>
+          </div>
+          <!-- Cancelled Panel -->
+          <div class="tracker-panel" id="panel-cancelled">
+            <table class="tracker-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Order #</th>
+                  <th>Customer Name</th>
+                  <th>Phone</th>
+                  <th>Governorate</th>
+                  <th>Total (EGP)</th>
+                  <th>Date</th>
+                  <th>WhatsApp</th>
+                </tr>
+              </thead>
+              <tbody id="cancelledBody"></tbody>
+            </table>
+            <div id="cancelledEmpty" class="tracker-empty" style="display:none;">لا يوجد طلبات ملغية بعد</div>
+          </div>
         </div>
       </div>
 
@@ -492,11 +649,16 @@
           const data = d.data();
           return {
             _id: d.id,
-            shortId: data.shortId || null,
-            customer: data.customer || {},
-            items: data.items || [],
-            total: data.total || 0,
-            status: data.status || 'new',
+            shortId:       data.shortId       || null,
+            customer:      data.customer       || {},
+            items:         data.items          || [],
+            subtotal:      data.subtotal       || 0,
+            discount:      data.discount       || 0,
+            shipping:      data.shipping       || 0,
+            total:         data.total          || 0,
+            promoCode:     data.promoCode      || '',
+            paymentMethod: data.paymentMethod  || 'cash',
+            status:        data.status         || 'new',
             createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : (data.createdAt || new Date().toISOString())
           };
         });
@@ -513,15 +675,22 @@
 
     // ===== STATS (cancelled مش بتتحسب في الـ revenue) =====
     function updateStats() {
-      const active = allOrders.filter(o => o.status !== 'cancelled');
+      const active    = allOrders.filter(o => o.status !== 'cancelled');
       const cancelled = allOrders.filter(o => o.status === 'cancelled');
-      const rev = active.reduce((s, o) => s + (o.total || 0), 0);
 
-      document.getElementById('statTotal').textContent = allOrders.length;
-      document.getElementById('statNew').textContent = allOrders.filter(o => o.status === 'new').length;
-      document.getElementById('statConfirmed').textContent = allOrders.filter(o => o.status === 'confirmed').length;
-      document.getElementById('statCancelled').textContent = cancelled.length;
-      document.getElementById('statRevenue').textContent = 'EGP ' + rev;
+      const totalRev    = active.reduce((s, o) => s + (o.total    || 0), 0);
+      const shippingRev = active.reduce((s, o) => s + (o.shipping || 0), 0);
+      const productRev  = totalRev - shippingRev;
+
+      document.getElementById('statTotal').textContent        = allOrders.length;
+      document.getElementById('statNew').textContent          = allOrders.filter(o => o.status === 'new').length;
+      document.getElementById('statConfirmed').textContent    = allOrders.filter(o => o.status === 'confirmed').length;
+      document.getElementById('statDelivered').textContent    = allOrders.filter(o => o.status === 'delivered').length;
+      document.getElementById('statCancelled').textContent    = cancelled.length;
+      document.getElementById('statRevenue').textContent      = 'EGP ' + totalRev.toLocaleString();
+      document.getElementById('statProductRev').textContent   = 'EGP ' + productRev.toLocaleString();
+      document.getElementById('statShippingRev').textContent  = 'EGP ' + shippingRev.toLocaleString();
+      renderTrackerTables();
     }
 
     // ===== RENDER TABLE =====
@@ -626,6 +795,9 @@
       // SHEET 1: الطلبات التفصيلية
       // ==========================================
       const ordersData = [
+        ['Candella – Monthly Orders Report'],
+        [monthName],
+        [],
         ['Order#', 'Date', 'Customer', 'Phone', 'Governorate', 'Address', 'Items (Scent/Size)', 'Qty', 'Subtotal (EGP)', 'Discount (EGP)', 'Shipping (EGP)', 'Total (EGP)', 'Payment', 'Status', 'Promo', 'Notes']
       ];
       [...filtered, ...cancelled].forEach((o, i) => {
@@ -651,17 +823,22 @@
         ]);
       });
       // Summary
-      const netRev = filtered.reduce((s, o) => s + o.total, 0);
+      const netRev      = filtered.reduce((s, o) => s + o.total, 0);
+      const shippingRev = filtered.reduce((s, o) => s + (o.shipping || 0), 0);
+      const productRev  = netRev - shippingRev;
       ordersData.push([]);
-      ordersData.push(['Net Revenue (EGP):', netRev]);
-      ordersData.push(['Active Orders:', filtered.length]);
-      ordersData.push(['Cancelled:', cancelled.length]);
+      ordersData.push(['صافي الإيراد (EGP):', netRev]);
+      ordersData.push(['  منه إيراد المنتجات (EGP):', productRev]);
+      ordersData.push(['  منه إيراد التوصيل (EGP):', shippingRev]);
+      ordersData.push(['الطلبات النشطة:', filtered.length]);
+      ordersData.push(['الملغية:', cancelled.length]);
 
       const ws1 = XLSX.utils.aoa_to_sheet(ordersData);
       ws1['!cols'] = [
         {wch:4},{wch:18},{wch:22},{wch:14},{wch:14},{wch:30},
         {wch:35},{wch:5},{wch:10},{wch:12},{wch:20}
       ];
+      xlsxStyle(wb, ws1, 3, 'FFF8F4EE');
       XLSX.utils.book_append_sheet(wb, ws1, 'Orders');
 
       // ==========================================
@@ -683,6 +860,9 @@
       const productsSorted = Object.values(productMap).sort((a, b) => b.totalQty - a.totalQty);
 
       const productsData = [
+        ['Candella – Products Analysis'],
+        [monthName],
+        [],
         ['Rank', 'Product Name', 'Unit Price (EGP)', 'Qty Sold', 'Orders Count', 'Total Revenue (EGP)', '% of Revenue']
       ];
       const totalAllRev = productsSorted.reduce((s, p) => s + p.totalRevenue, 0);
@@ -705,36 +885,40 @@
       ws2['!cols'] = [
         {wch:6},{wch:28},{wch:14},{wch:10},{wch:13},{wch:16},{wch:13}
       ];
+      xlsxStyle(wb, ws2, 3, 'FFF8F4EE');
       XLSX.utils.book_append_sheet(wb, ws2, 'Products Analysis');
 
       // ==========================================
       // SHEET 3: ملخص الشهر
       // ==========================================
       const summaryData = [
-        ['Candella – Monthly Summary'],
+        ['Candella – ملخص الشهر'],
         [monthName],
         [''],
-        ['Metric', 'Value'],
-        ['Total Orders (Active)', filtered.length],
-        ['Cancelled Orders', cancelled.length],
-        ['Total Orders', filtered.length + cancelled.length],
+        ['المؤشر', 'القيمة'],
+        ['الطلبات النشطة', filtered.length],
+        ['الطلبات الملغية', cancelled.length],
+        ['إجمالي الطلبات', filtered.length + cancelled.length],
         [''],
-        ['Net Revenue (EGP)', netRev],
-        ['Avg Order Value (EGP)', filtered.length > 0 ? (netRev / filtered.length).toFixed(2) : 0],
+        ['صافي الإيراد (EGP)', netRev],
+        ['  إيراد المنتجات (EGP)', productRev],
+        ['  إيراد التوصيل (EGP)', shippingRev],
+        ['متوسط قيمة الطلب (EGP)', filtered.length > 0 ? (netRev / filtered.length).toFixed(2) : 0],
         [''],
-        ['Top Product', productsSorted.length > 0 ? productsSorted[0].name : '-'],
-        ['Top Product Qty Sold', productsSorted.length > 0 ? productsSorted[0].totalQty : 0],
-        ['Top Product Revenue (EGP)', productsSorted.length > 0 ? productsSorted[0].totalRevenue : 0],
+        ['أكثر منتج مبيعاً', productsSorted.length > 0 ? productsSorted[0].name : '-'],
+        ['كمية المنتج الأكثر مبيعاً', productsSorted.length > 0 ? productsSorted[0].totalQty : 0],
+        ['إيراد المنتج الأكثر مبيعاً (EGP)', productsSorted.length > 0 ? productsSorted[0].totalRevenue : 0],
         [''],
-        ['Most Popular Governorate', getMostPopular(filtered)],
+        ['أكثر محافظة طلباتها', getMostPopular(filtered)],
       ];
 
       const ws3 = XLSX.utils.aoa_to_sheet(summaryData);
       ws3['!cols'] = [{wch:28},{wch:20}];
+      xlsxStyle(wb, ws3, 3, 'FFF8F4EE');
       XLSX.utils.book_append_sheet(wb, ws3, 'Summary');
 
       // Download
-      XLSX.writeFile(wb, 'Candella_' + monthName.replace(' ', '_') + '.xlsx');
+      XLSX.writeFile(wb, 'Candella_' + monthName.replace(' ', '_') + '.xlsx', { cellStyles: true });
     }
 
     function getMostPopular(orders) {
@@ -847,10 +1031,10 @@
           }).join('') +
         '</div>' +
         '<div class="modal-total">' +
-          '<div style="font-size:12px;color:#888;margin-bottom:4px;">' +
+          '<div style="font-size:12px;color:#888;margin-bottom:6px;line-height:2;">' +
             'Subtotal: EGP ' + (o.subtotal || o.total) +
-            (o.discount ? ' · Discount: -EGP ' + o.discount : '') +
-            ' · Shipping: EGP ' + (o.shipping || 0) +
+            (o.discount ? ' &nbsp;·&nbsp; Discount: <span style="color:#e74c3c;">-EGP ' + o.discount + '</span>' : '') +
+            ' &nbsp;·&nbsp; Shipping (' + (o.customer.governorate||'-') + '): <strong style="color:' + ((o.shipping||0) === 0 ? '#27ae60' : '#1a5276') + ';">' + ((o.shipping||0) === 0 ? 'FREE 🎉' : 'EGP ' + o.shipping) + '</strong>' +
           '</div>' +
           'Total: EGP ' + o.total +
         '</div>' +
@@ -947,6 +1131,7 @@
       items1.push(['إجمالي عدد الأصناف:', Object.values(productMap).reduce(function(s,p){return s+p.qty;},0)]);
       var ws1 = XLSX.utils.aoa_to_sheet(items1);
       ws1['!cols'] = [{wch:30},{wch:16},{wch:14},{wch:16},{wch:14}];
+      xlsxStyle(wb, ws1, 3, 'FFF8F4EE');
       XLSX.utils.book_append_sheet(wb, ws1, 'قائمة التجهيز');
 
       // ── الورقة 2: كل طلب بالرقم والتفاصيل ──
@@ -968,16 +1153,199 @@
       items2.push(['إجمالي الإيراد:', '', '', '', '', '', '', '', dayOrders.reduce(function(s,o){return s+o.total;},0)]);
       var ws2 = XLSX.utils.aoa_to_sheet(items2);
       ws2['!cols'] = [{wch:8},{wch:22},{wch:14},{wch:14},{wch:35},{wch:8},{wch:12},{wch:10},{wch:12},{wch:12},{wch:8}];
+      xlsxStyle(wb, ws2, 3, 'FFF8F4EE');
       XLSX.utils.book_append_sheet(wb, ws2, 'تفاصيل الطلبات');
 
       var fname = 'Candella_يوم_' + dayVal + '.xlsx';
-      XLSX.writeFile(wb, fname);
+      XLSX.writeFile(wb, fname, { cellStyles: true });
     }
 
     window.closeModal = function(e) {
       if (e && e.target !== document.getElementById('modalOverlay')) return;
       document.getElementById('modalOverlay').classList.remove('show');
     }
+
+    // ===== SHARED EXCEL STYLE HELPER — matches candella_customers.xlsx exactly =====
+    function xlsxStyle(wb, ws, headerRow, bgEven) {
+      // Exact colors from candella_customers.xlsx:
+      // Row 0 (Title):    fill=1E3A5F (navy),  font=FFFFFF (white), bold, sz=13
+      // Row 1 (Subtitle): fill=F8F4EE (cream),  font=888888 (grey),  normal
+      // Row 2 (empty):    fill=FFFFFF
+      // headerRow:        fill=C8A96E (gold),   font=FFFFFF (white), bold, sz=10
+      // data even rows:   fill=bgEven,           font=111111
+      // data odd rows:    fill=FFFFFF,           font=111111
+      // borders: thin DDDDDD on all cells
+
+      var NAVY  = 'FF1E3A5F';
+      var GOLD  = 'FFC8A96E';
+      var WHITE = 'FFFFFFFF';
+      var CREAM = 'FFF8F4EE';
+      var GREY  = 'FF888888';
+      var BLUE_LINK = 'FF0070C0';
+      var EVEN  = bgEven ? ('FF' + bgEven.replace(/^FF/,'').replace(/^#/,'')) : 'FFE8F5E9';
+      var border = {
+        top:    { style: 'thin', color: { rgb: 'FFDDDDDD' } },
+        bottom: { style: 'thin', color: { rgb: 'FFDDDDDD' } },
+        left:   { style: 'thin', color: { rgb: 'FFDDDDDD' } },
+        right:  { style: 'thin', color: { rgb: 'FFDDDDDD' } }
+      };
+
+      var range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+      if (!ws['!rows']) ws['!rows'] = [];
+
+      for (var R = range.s.r; R <= range.e.r; R++) {
+        // Row heights
+        if (R === 0)         ws['!rows'][R] = { hpt: 32 };
+        else if (R === 1)    ws['!rows'][R] = { hpt: 20 };
+        else if (R === headerRow) ws['!rows'][R] = { hpt: 26 };
+        else                 ws['!rows'][R] = { hpt: 20 };
+
+        for (var C = range.s.c; C <= range.e.c; C++) {
+          var addr = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!ws[addr]) ws[addr] = { v: '', t: 's' };
+
+          var isDataRow = R > headerRow;
+          var dataIdx   = R - headerRow; // 1-based data row index
+          var isEvenData = isDataRow && (dataIdx % 2 === 1); // 1st data row = even fill
+
+          // Detect hyperlink/link cell
+          var isLink = isDataRow && ws[addr].v && typeof ws[addr].v === 'string' &&
+                       (ws[addr].v.indexOf('wa.me') !== -1 || ws[addr].v.indexOf('HYPERLINK') !== -1 ||
+                        ws[addr].v.indexOf('http') !== -1);
+
+          var fillColor, fontColor, isBold, fontSize, hAlign;
+
+          if (R === 0) {
+            // Title row
+            fillColor = NAVY; fontColor = WHITE; isBold = true; fontSize = 13; hAlign = 'left';
+          } else if (R === 1) {
+            // Subtitle row
+            fillColor = CREAM; fontColor = GREY; isBold = false; fontSize = 10; hAlign = 'left';
+          } else if (R === 2 && R < headerRow) {
+            // Empty spacer row
+            fillColor = WHITE; fontColor = WHITE; isBold = false; fontSize = 10; hAlign = 'left';
+          } else if (R === headerRow) {
+            // Header row — GOLD background
+            fillColor = GOLD; fontColor = WHITE; isBold = true; fontSize = 10; hAlign = 'center';
+          } else {
+            // Data rows
+            fillColor = isEvenData ? EVEN : WHITE;
+            fontColor = isLink ? BLUE_LINK : '111111';
+            isBold = false; fontSize = 10; hAlign = 'left';
+          }
+
+          ws[addr].s = {
+            font: { name: 'Arial', bold: isBold, sz: fontSize, color: { rgb: fontColor } },
+            fill: { patternType: 'solid', fgColor: { rgb: fillColor } },
+            alignment: { horizontal: hAlign, vertical: 'center', wrapText: false },
+            border: border
+          };
+        }
+      }
+    }
+
+    // ===== EXPORT TRACKER EXCEL =====
+    window.exportTrackerExcel = function() {
+      var delivered = allOrders.filter(function(o) { return o.status === 'delivered'; });
+      var cancelled = allOrders.filter(function(o) { return o.status === 'cancelled'; });
+
+      if (delivered.length === 0 && cancelled.length === 0) {
+        alert('No delivered or cancelled orders yet.');
+        return;
+      }
+
+      var wb = XLSX.utils.book_new();
+
+      function makeTrackerSheet(orders, titleText) {
+        var data = [
+          [titleText],
+          ['Candella – Customer Tracker'],
+          [],
+          ['#', 'Order #', 'Customer Name', 'Phone', 'Governorate', 'Total (EGP)', 'Date', 'WhatsApp Link']
+        ];
+        orders.forEach(function(o, i) {
+          var phone = (o.customer.phone || '').replace(/^0/, '');
+          var d = new Date(o.createdAt);
+          var dateStr = d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+          data.push([
+            i + 1,
+            o.shortId || '-',
+            o.customer.fullName || '-',
+            o.customer.phone || '-',
+            o.customer.governorate || '-',
+            o.total,
+            dateStr,
+            'https://wa.me/2' + phone
+          ]);
+        });
+        var ws = XLSX.utils.aoa_to_sheet(data);
+        ws['!cols'] = [{wch:5},{wch:10},{wch:28},{wch:16},{wch:16},{wch:14},{wch:20},{wch:36}];
+        xlsxStyle(wb, ws, 3, 'E8F5E9');
+        return ws;
+      }
+
+      var ws1 = makeTrackerSheet(delivered, '✅ Customers — Orders Delivered');
+      var ws2 = makeTrackerSheet(cancelled, '❌ Customers — Orders Cancelled');
+      // Override even-row color for cancelled sheet to red tint
+      xlsxStyle(wb, ws2, 3, 'FFF3F3');
+
+      XLSX.utils.book_append_sheet(wb, ws1, '✅ Delivered');
+      XLSX.utils.book_append_sheet(wb, ws2, '❌ Cancelled');
+
+      XLSX.writeFile(wb, 'Candella_Customer_Tracker.xlsx', { cellStyles: true });
+    };
+
+    // ===== CUSTOMER TRACKER =====
+    window.switchTab = function(tab) {
+      document.querySelectorAll('.tracker-tab').forEach(function(btn, i) {
+        btn.classList.toggle('active', (i === 0 && tab === 'delivered') || (i === 1 && tab === 'cancelled'));
+      });
+      document.getElementById('panel-delivered').classList.toggle('active', tab === 'delivered');
+      document.getElementById('panel-cancelled').classList.toggle('active', tab === 'cancelled');
+    };
+
+    function renderTrackerTables() {
+      var delivered = allOrders.filter(function(o) { return o.status === 'delivered'; });
+      var cancelled = allOrders.filter(function(o) { return o.status === 'cancelled'; });
+
+      function buildRows(orders, tbodyId, emptyId) {
+        var tbody = document.getElementById(tbodyId);
+        var empty = document.getElementById(emptyId);
+        if (!tbody) return;
+        if (orders.length === 0) {
+          tbody.innerHTML = '';
+          if (empty) empty.style.display = 'block';
+          return;
+        }
+        if (empty) empty.style.display = 'none';
+        tbody.innerHTML = orders.map(function(o, i) {
+          var phone = (o.customer.phone || '').replace(/^0/, '');
+          var waUrl = 'https://wa.me/2' + phone;
+          var name = o.customer.fullName || '-';
+          var d = new Date(o.createdAt);
+          var dateStr = d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+          return '<tr>' +
+            '<td><strong>' + (i + 1) + '</strong></td>' +
+            '<td><strong style="font-family:monospace;font-size:15px;letter-spacing:3px;color:var(--gold);">' + (o.shortId || '-') + '</strong></td>' +
+            '<td><strong>' + name + '</strong></td>' +
+            '<td style="font-family:monospace;">' + (o.customer.phone || '-') + '</td>' +
+            '<td>' + (o.customer.governorate || '-') + '</td>' +
+            '<td><strong style="color:var(--gold);">EGP ' + o.total + '</strong></td>' +
+            '<td style="font-size:12px;color:#888;">' + dateStr + '</td>' +
+            '<td><a class="wa-btn" href="' + waUrl + '" target="_blank"><i class="fab fa-whatsapp"></i> ' + name.split(' ')[0] + '</a></td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      buildRows(delivered, 'deliveredBody', 'deliveredEmpty');
+      buildRows(cancelled, 'cancelledBody', 'cancelledEmpty');
+    }
+
+    // Hook into loadOrders to also render tracker
+    var _origLoadOrders = loadOrders;
+    // We patch renderOrders to also call tracker render after allOrders is updated
+    // Actually we patch updateStats since it runs after allOrders is set
+    var _origUpdateStats = updateStats;
 
     // Set today as default for daily export
     var today = new Date().toISOString().slice(0,10);
@@ -995,3 +1363,4 @@
   </script>
 </body>
 </html>
+

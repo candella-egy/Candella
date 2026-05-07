@@ -273,15 +273,18 @@
     function getSubtotal() { return cart.reduce(function(s,c){ return s + c.price * c.qty; }, 0); }
     function getDiscount(subtotal) { return appliedPromo ? Math.round(subtotal * PROMO_DISCOUNT_PCT / 100) : 0; }
     function getShipping(afterDisc, sub) {
-      // الشحن المجاني يتحسب على الـ subtotal الأصلي قبل الخصم
-      if((sub || afterDisc) >= FREE_SHIPPING_THRESHOLD) return 0;
       var gov = (document.getElementById('governorate') || {}).value || '';
+      // لو المحافظة مش متحددة → صفر
+      if (!gov) return 0;
+      // شحن مجاني لو فوق الـ threshold
+      if ((sub || afterDisc) >= FREE_SHIPPING_THRESHOLD) return 0;
       return SHIPPING_FEES[gov] || 80;
     }
     function recalcTotals() {
       var sub = getSubtotal();
       var disc = getDiscount(sub);
       var afterDisc = sub - disc;
+      var gov = (document.getElementById('governorate') || {}).value || '';
       var ship = getShipping(afterDisc, sub);
       var total = afterDisc + ship;
       var subtotalEl = document.getElementById('subtotalVal');
@@ -296,11 +299,16 @@
       }
       var shipVal = document.getElementById('shippingVal');
       if(shipVal) {
-        if(ship === 0) shipVal.innerHTML = '<span style="color:#27ae60;font-weight:700;">FREE</span>';
-        else shipVal.innerHTML = 'EGP ' + ship;
+        if (!gov) {
+          shipVal.innerHTML = '<span style="color:#aaa;">—</span>';
+        } else if (ship === 0) {
+          shipVal.innerHTML = '<span style="color:#27ae60;font-weight:700;">FREE</span>';
+        } else {
+          shipVal.innerHTML = 'EGP ' + ship;
+        }
       }
       var totalEl = document.getElementById('summaryTotal');
-      if(totalEl) totalEl.textContent = total;
+      if(totalEl) totalEl.textContent = !gov ? '—' : total;
       return { subtotal: sub, discount: disc, shipping: ship, total: total };
     }
     document.getElementById('governorate').addEventListener('change', recalcTotals);
@@ -670,3 +678,4 @@
   </script>
 </body>
 </html>
+

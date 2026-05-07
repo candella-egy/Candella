@@ -369,6 +369,11 @@
           <div class="stat-label">Confirmed</div>
         </div>
         <div class="stat-card">
+          <div class="stat-icon">🏠</div>
+          <div class="stat-num" id="statDelivered">0</div>
+          <div class="stat-label">Delivered</div>
+        </div>
+        <div class="stat-card">
           <div class="stat-icon">❌</div>
           <div class="stat-num" id="statCancelled">0</div>
           <div class="stat-label">Cancelled</div>
@@ -377,6 +382,16 @@
           <div class="stat-icon">💰</div>
           <div class="stat-num" id="statRevenue">EGP 0</div>
           <div class="stat-label">Net Revenue</div>
+        </div>
+        <div class="stat-card" style="border:2px solid rgba(201,162,77,0.35);">
+          <div class="stat-icon">🛍️</div>
+          <div class="stat-num" id="statProductRev">EGP 0</div>
+          <div class="stat-label">Products Revenue</div>
+        </div>
+        <div class="stat-card" style="border:2px solid rgba(39,174,96,0.35);">
+          <div class="stat-icon">🚚</div>
+          <div class="stat-num" id="statShippingRev" style="color:#27ae60;">EGP 0</div>
+          <div class="stat-label">Shipping Revenue</div>
         </div>
       </div>
 
@@ -634,11 +649,16 @@
           const data = d.data();
           return {
             _id: d.id,
-            shortId: data.shortId || null,
-            customer: data.customer || {},
-            items: data.items || [],
-            total: data.total || 0,
-            status: data.status || 'new',
+            shortId:       data.shortId       || null,
+            customer:      data.customer       || {},
+            items:         data.items          || [],
+            subtotal:      data.subtotal       || 0,
+            discount:      data.discount       || 0,
+            shipping:      data.shipping       || 0,
+            total:         data.total          || 0,
+            promoCode:     data.promoCode      || '',
+            paymentMethod: data.paymentMethod  || 'cash',
+            status:        data.status         || 'new',
             createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : (data.createdAt || new Date().toISOString())
           };
         });
@@ -655,15 +675,21 @@
 
     // ===== STATS (cancelled مش بتتحسب في الـ revenue) =====
     function updateStats() {
-      const active = allOrders.filter(o => o.status !== 'cancelled');
+      const active    = allOrders.filter(o => o.status !== 'cancelled');
       const cancelled = allOrders.filter(o => o.status === 'cancelled');
-      const rev = active.reduce((s, o) => s + (o.total || 0), 0);
 
-      document.getElementById('statTotal').textContent = allOrders.length;
-      document.getElementById('statNew').textContent = allOrders.filter(o => o.status === 'new').length;
-      document.getElementById('statConfirmed').textContent = allOrders.filter(o => o.status === 'confirmed').length;
-      document.getElementById('statCancelled').textContent = cancelled.length;
-      document.getElementById('statRevenue').textContent = 'EGP ' + rev;
+      const totalRev    = active.reduce((s, o) => s + (o.total    || 0), 0);
+      const shippingRev = active.reduce((s, o) => s + (o.shipping || 0), 0);
+      const productRev  = totalRev - shippingRev;
+
+      document.getElementById('statTotal').textContent        = allOrders.length;
+      document.getElementById('statNew').textContent          = allOrders.filter(o => o.status === 'new').length;
+      document.getElementById('statConfirmed').textContent    = allOrders.filter(o => o.status === 'confirmed').length;
+      document.getElementById('statDelivered').textContent    = allOrders.filter(o => o.status === 'delivered').length;
+      document.getElementById('statCancelled').textContent    = cancelled.length;
+      document.getElementById('statRevenue').textContent      = 'EGP ' + totalRev.toLocaleString();
+      document.getElementById('statProductRev').textContent   = 'EGP ' + productRev.toLocaleString();
+      document.getElementById('statShippingRev').textContent  = 'EGP ' + shippingRev.toLocaleString();
       renderTrackerTables();
     }
 
@@ -797,11 +823,15 @@
         ]);
       });
       // Summary
-      const netRev = filtered.reduce((s, o) => s + o.total, 0);
+      const netRev      = filtered.reduce((s, o) => s + o.total, 0);
+      const shippingRev = filtered.reduce((s, o) => s + (o.shipping || 0), 0);
+      const productRev  = netRev - shippingRev;
       ordersData.push([]);
-      ordersData.push(['Net Revenue (EGP):', netRev]);
-      ordersData.push(['Active Orders:', filtered.length]);
-      ordersData.push(['Cancelled:', cancelled.length]);
+      ordersData.push(['صافي الإيراد (EGP):', netRev]);
+      ordersData.push(['  منه إيراد المنتجات (EGP):', productRev]);
+      ordersData.push(['  منه إيراد التوصيل (EGP):', shippingRev]);
+      ordersData.push(['الطلبات النشطة:', filtered.length]);
+      ordersData.push(['الملغية:', cancelled.length]);
 
       const ws1 = XLSX.utils.aoa_to_sheet(ordersData);
       ws1['!cols'] = [
@@ -862,22 +892,24 @@
       // SHEET 3: ملخص الشهر
       // ==========================================
       const summaryData = [
-        ['Candella – Monthly Summary'],
+        ['Candella – ملخص الشهر'],
         [monthName],
         [''],
-        ['Metric', 'Value'],
-        ['Total Orders (Active)', filtered.length],
-        ['Cancelled Orders', cancelled.length],
-        ['Total Orders', filtered.length + cancelled.length],
+        ['المؤشر', 'القيمة'],
+        ['الطلبات النشطة', filtered.length],
+        ['الطلبات الملغية', cancelled.length],
+        ['إجمالي الطلبات', filtered.length + cancelled.length],
         [''],
-        ['Net Revenue (EGP)', netRev],
-        ['Avg Order Value (EGP)', filtered.length > 0 ? (netRev / filtered.length).toFixed(2) : 0],
+        ['صافي الإيراد (EGP)', netRev],
+        ['  إيراد المنتجات (EGP)', productRev],
+        ['  إيراد التوصيل (EGP)', shippingRev],
+        ['متوسط قيمة الطلب (EGP)', filtered.length > 0 ? (netRev / filtered.length).toFixed(2) : 0],
         [''],
-        ['Top Product', productsSorted.length > 0 ? productsSorted[0].name : '-'],
-        ['Top Product Qty Sold', productsSorted.length > 0 ? productsSorted[0].totalQty : 0],
-        ['Top Product Revenue (EGP)', productsSorted.length > 0 ? productsSorted[0].totalRevenue : 0],
+        ['أكثر منتج مبيعاً', productsSorted.length > 0 ? productsSorted[0].name : '-'],
+        ['كمية المنتج الأكثر مبيعاً', productsSorted.length > 0 ? productsSorted[0].totalQty : 0],
+        ['إيراد المنتج الأكثر مبيعاً (EGP)', productsSorted.length > 0 ? productsSorted[0].totalRevenue : 0],
         [''],
-        ['Most Popular Governorate', getMostPopular(filtered)],
+        ['أكثر محافظة طلباتها', getMostPopular(filtered)],
       ];
 
       const ws3 = XLSX.utils.aoa_to_sheet(summaryData);
@@ -958,7 +990,7 @@
         if (!confirm(labels[newStatus] || 'تحديث الحالة؟')) return;
         await doUpdate();
       } else {
-        // cancelled دايماً يطلب باسورد + أي رجوع لحالة أقل
+        // أي رجوع لحالة أقل أو cancelled → باسورد مطلوب دائماً
         if (newStatus === 'cancelled' || newRank < curRank) {
           requirePassword(doUpdate);
         } else {
@@ -999,10 +1031,10 @@
           }).join('') +
         '</div>' +
         '<div class="modal-total">' +
-          '<div style="font-size:12px;color:#888;margin-bottom:4px;">' +
+          '<div style="font-size:12px;color:#888;margin-bottom:6px;line-height:2;">' +
             'Subtotal: EGP ' + (o.subtotal || o.total) +
-            (o.discount ? ' · Discount: -EGP ' + o.discount : '') +
-            ' · Shipping: EGP ' + (o.shipping || 0) +
+            (o.discount ? ' &nbsp;·&nbsp; Discount: <span style="color:#e74c3c;">-EGP ' + o.discount + '</span>' : '') +
+            ' &nbsp;·&nbsp; Shipping (' + (o.customer.governorate||'-') + '): <strong style="color:' + ((o.shipping||0) === 0 ? '#27ae60' : '#1a5276') + ';">' + ((o.shipping||0) === 0 ? 'FREE 🎉' : 'EGP ' + o.shipping) + '</strong>' +
           '</div>' +
           'Total: EGP ' + o.total +
         '</div>' +

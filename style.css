@@ -121,6 +121,39 @@ body {
   font-weight: 500;
 }
 
+/* ── Animated Top Bar Ticker (home.html) ── */
+.top-bar-ticker {
+  background: var(--navy);
+  overflow: hidden;
+  padding: 10px 0;
+  white-space: nowrap;
+  height: 38px;
+  display: flex;
+  align-items: center;
+}
+.top-bar-track {
+  display: inline-block;
+  animation: topBarTicker 26s linear infinite;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.85);
+}
+.top-bar-track:hover { animation-play-state: paused; }
+@keyframes topBarTicker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.top-bar-item { padding: 0 24px; }
+.top-bar-dot {
+  color: var(--gold);
+  font-size: 14px;
+  vertical-align: middle;
+}
+.top-bar-highlight { color: var(--gold); font-weight: 600; }
+
 /* ========== NAVBAR ========== */
 .navbar {
   position: fixed;
@@ -783,3 +816,4 @@ body {
   .order-summary { position: static; }
   .landing-title { font-size: 38px; letter-spacing: 6px; }
 }
+

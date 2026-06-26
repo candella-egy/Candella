@@ -1664,6 +1664,7 @@ video.rc-media-item {
   #mainNav > div:nth-child(2) { display:none !important; }
   .nav-hamburger { display:block !important; }
   .nav-account-icon { display:none !important; }
+  .nav-track-icon { display:block !important; }
   /* Search box still shows on mobile — but as a centered modal instead
      of a dropdown anchored under a specific icon. */
   .nav-popup {
@@ -1699,7 +1700,7 @@ video.rc-media-item {
      doesn't sit flush against the hamburger — same intent as shop.html's
      margin-left:16px on its logo, just done via the anchor point since
      this logo is absolutely positioned rather than in normal flow. */
-  #mainNav > a:first-child { position: absolute; left: calc(50% + 10px); top: 50%; transform: translate(-50%, -50%); }
+  #mainNav > a:first-child { position: absolute; left: calc(50% + 20px); top: 50%; transform: translate(-50%, -50%); }
   .nav-hamburger { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); margin: 0; }
 }
 

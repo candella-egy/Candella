@@ -1700,10 +1700,9 @@ video.rc-media-item {
      doesn't sit flush against the hamburger — same intent as shop.html's
      margin-left:16px on its logo, just done via the anchor point since
      this logo is absolutely positioned rather than in normal flow. */
-  /* True dead-center, matching the reference layout — equal breathing
-     room from the hamburger on the left and the icon row on the right,
-     instead of skewed toward either side. */
-  #mainNav > a:first-child { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+  /* Slightly toward the hamburger side of true-center — more breathing
+     room from the search/track/cart icon row specifically. */
+  #mainNav > a:first-child { position: absolute; left: calc(50% - 10px); top: 50%; transform: translate(-50%, -50%); }
   .nav-hamburger { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); margin: 0; }
   /* Tighter icon spacing on mobile only — frees up room so the search
      icon never crowds into the logo text on narrow screens. */

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop Candles &amp; Gift Sets | Candella</title>
+  <meta name="description" content="Browse Candella's full collection of scented and unscented candles, containers, and accessories — plus limited editions and best sellers." />
+  <meta name="robots" content="index, follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Candella" />
+  <meta property="og:title" content="Shop Candles &amp; Gift Sets | Candella" />
+  <meta property="og:description" content="Browse Candella's full collection of scented and unscented candles, containers, and accessories." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Shop Candles &amp; Gift Sets | Candella" />
+  <meta name="twitter:description" content="Browse Candella's full collection of scented and unscented candles, containers, and accessories." />
+  <!-- canonical / og:url intentionally omitted — no production domain yet. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="../js/config/supabase.js" defer></script>
+  <script src="../js/services/cartService.js" defer></script>
+  <script src="../js/shared/img.js" defer></script>
+  <script src="../js/shared/toast.js" defer></script>
+  <script src="../js/shared/cart.js" defer></script>
+  <script src="../js/shared/nav.js" defer></script>
+</head>
+<body>
+
+  <!-- Side Menu -->
+  <div id="sideMenu" class="side-menu" style="background:#faf8f5;padding:0;display:flex;flex-direction:column;height:100%;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:24px 28px 20px;border-bottom:1px solid rgba(0,0,0,0.08);">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy);letter-spacing:5px;text-transform:uppercase;">CANDELLA</div>
+      <span class="close-btn" onclick="closeMenu()" role="button" tabindex="0" aria-label="Close menu" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="color:var(--navy);font-size:20px;float:none;">&#10005;</span>
+    </div>
+    <div class="new-side-row" id="shopRow" onclick="toggleNewShopDrop()">
+      <span style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--navy);">Shop</span>
+      <span id="shopRowIcon" style="font-size:18px;color:var(--navy);transition:transform 0.25s;">+</span>
+    </div>
+    <div id="newShopDropMenu" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;background:#f0ede8;">
+      <a href="shop.html?filter=all" class="new-side-sub" data-filter="all">All Products</a>
+      <a href="shop.html?filter=best" class="new-side-sub" data-filter="best">Best Sellers</a>
+    </div>
+    <div class="new-side-row" onclick="window.location.href='custom.html'" style="cursor:pointer;">
+      <span style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--navy);">Build Your Gift Set</span>
+    </div>
+
+    <!-- MORE -->
+    <div class="new-side-row" id="moreRow" onclick="toggleMoreDrop()">
+      <span style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--navy);">More</span>
+      <span id="moreRowIcon" style="font-size:18px;color:var(--navy);transition:transform 0.25s;">+</span>
+    </div>
+    <div id="moreDropMenu" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;background:#f0ede8;">
+    </div>
+
+    <!-- CONTACT -->
+    <div class="new-side-row" id="contactRow" onclick="toggleContactDrop()">
+      <span style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--navy);">Contact</span>
+      <span id="contactRowIcon" style="font-size:18px;color:var(--navy);transition:transform 0.25s;">+</span>
+    </div>
+    <div id="contactDropMenu" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;background:#f0ede8;">
+      <a href="https://wa.me/201515346534" target="_blank" class="new-side-sub" style="display:flex;align-items:center;gap:10px;">
+        <i class="fab fa-whatsapp" style="color:#25D366;font-size:16px;"></i> WhatsApp
+      </a>
+      <a href="https://www.instagram.com/candella_egy?igsh=eHo2dHp2ZGVxeGp5&utm_source=qr" target="_blank" class="new-side-sub" style="display:flex;align-items:center;gap:10px;">
+        <i class="fab fa-instagram" style="color:#E1306C;font-size:16px;"></i> Instagram
+      </a>
+    </div>
+
+    <div style="height:1px;background:rgba(0,0,0,0.08);margin:4px 0;"></div>
+    <div id="sideAuthArea" style="padding:14px 28px;">
+      <button class="side-auth-btn" onclick="sideSignIn()" style="color:var(--navy);font-size:13px;padding:0;font-weight:500;letter-spacing:0.5px;">
+        Log in
+      </button>
+    </div>
+    <div id="sideUserArea" style="display:none;padding:12px 28px 0;">
+      <div onclick="navAccountClick()" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer;">
+        <img id="sideUserPhoto" src="" alt="Profile photo" width="32" height="32" style="border-radius:50%;border:2px solid var(--gold);object-fit:cover;" />
+        <div>
+          <div id="sideUserName" style="color:var(--navy);font-size:13px;font-weight:600;"></div>
+          <div id="sideUserEmail" style="color:#aaa;font-size:10px;letter-spacing:0.5px;"></div>
+        </div>
+      </div>
+      <button class="side-auth-btn" style="color:#aaa;font-size:10px;" onclick="sideSignOut()">
+        <i class="fa-solid fa-right-from-bracket"></i> Sign out
+      </button>
+    </div>
+  </div>
+  <div id="menuOverlay" class="menu-overlay" onclick="closeMenu()"></div>
+  <!-- Standalone account popup — same one used on home.html, triggered
+       here from the side menu's logged-in row (navAccountClick()) since
+       shop.html has no separate top-bar account icon. -->
+  <div id="navAccountBox" class="nav-popup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-top:2px solid var(--gold);box-shadow:0 12px 40px rgba(0,0,0,0.12);padding:20px;z-index:300;min-width:260px;max-width:320px;width:85vw;border-radius:4px;text-align:center;">
+    <div style="font-family:'Montserrat',sans-serif;font-size:12px;color:#888;margin-bottom:14px;line-height:1.7;" id="navAccountEmailText"></div>
+    <button onclick="navAccountSignOut()" style="width:100%;padding:10px;border:none;border-radius:6px;background:var(--navy);color:#fff;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.5px;cursor:pointer;margin-bottom:8px;">SIGN OUT</button>
+    <button onclick="closeNavAccountBox()" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;font-family:'Montserrat',sans-serif;font-size:12px;letter-spacing:0.5px;cursor:pointer;">CANCEL</button>
+  </div>
+
+  <!-- Top Bar Ticker -->
+  <div class="top-bar-ticker">
+    <div class="top-bar-track">
+      <span class="top-bar-item"><span class="top-bar-highlight">Free Shipping</span> on orders over <span class="top-bar-highlight">2,000 EGP</span> — All Governorates</span>
+      <span class="top-bar-dot">✦</span>
+      <span class="top-bar-item"><span class="top-bar-highlight">Free Shipping</span> on orders over <span class="top-bar-highlight">2,000 EGP</span> — All Governorates</span>
+      <span class="top-bar-dot">✦</span>
+      <span class="top-bar-item"><span class="top-bar-highlight">Free Shipping</span> on orders over <span class="top-bar-highlight">2,000 EGP</span> — All Governorates</span>
+      <span class="top-bar-dot">✦</span>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="shopNavbar">
+    <div class="menu-icon" onclick="openMenu()" role="button" tabindex="0" aria-label="Open menu" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+      <i class="fa-solid fa-bars"></i>
+    </div>
+    <div class="logo" style="line-height:1.1;text-align:center;">
+      <a href="home.html" style="text-decoration:none;color:inherit;">Candella</a>
+      <div style="font-size:11px;letter-spacing:4px;font-weight:400;opacity:0.75;text-transform:uppercase;margin-top:3px;">Light Your Moments</div>
+    </div>
+    <div class="icons">
+      <a href="home.html" aria-label="Home" style="color:var(--navy);text-decoration:none;"><i class="fa-solid fa-house"></i></a>
+      <a href="custom.html" id="shopCustomIconLink" aria-label="Build Gift Set" style="color:var(--navy);text-decoration:none;margin-left:20px;" title="Build Gift Set"><i class="fa-solid fa-wand-magic-sparkles"></i></a>
+      <a href="track.html" aria-label="Track Order" style="color:var(--navy);text-decoration:none;margin-left:20px;" title="Track Order"><i class="fa-solid fa-truck"></i></a>
+      <span onclick="toggleCart()" role="button" tabindex="0" aria-label="Open cart" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="position:relative;cursor:pointer;margin-left:20px;">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span id="cartBadge" class="cart-badge">0</span>
+      </span>
+    </div>
+  </nav>
+
+  <!-- Products Section -->
+  <section class="products" id="productsSection">
+    <h2 id="shopTitle">Our Collection</h2>
+    <div class="filter-tabs" id="filterTabs">
+      <button class="tab active" data-filter="all">All</button>
+      <button class="tab" data-filter="best">Best Sellers</button>
+      <button class="tab" data-filter="candles">Scented Candles</button>
+      <button class="tab" data-filter="unscented">Unscented</button>
+      <button class="tab" data-filter="containers">Containers</button>
+      <button class="tab" data-filter="offers">Limited Edition</button>
+    </div>
+    <div class="product-list" id="productList">
+      <div class="products-empty"><i class="fa-solid fa-spinner fa-spin"></i></div>
+    </div>
+  </section>
+
+  <!-- Cart Sidebar -->
+  <div id="cartSidebar" class="cart-sidebar">
+    <div class="cart-header">
+      <h3>🛒 Your Cart</h3>
+      <span onclick="toggleCart()" role="button" tabindex="0" aria-label="Close cart" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="font-size:24px;cursor:pointer;color:#888;">&#10005;</span>
+    </div>
+    <div id="cartItems" class="cart-items"></div>
+    <div class="cart-footer">
+      <div class="cart-total">Total: EGP <span id="cartTotal">0</span></div>
+      <button class="checkout-btn" onclick="goCheckout()">Proceed to Checkout</button>
+    </div>
+  </div>
+  <div id="cartOverlay" class="menu-overlay" onclick="toggleCart()"></div>
+  <div id="toast" class="toast"></div>
+
+  <script type="module" src="../js/pages/shop.js"></script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Track Your Order | Candella</title>
+  <meta name="description" content="Track the status of your Candella order." />
+  <!-- noindex: a lookup tool, not content — nothing here is useful as a
+       search result, but outbound links (to home/shop) can still be followed. -->
+  <meta name="robots" content="noindex, follow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="../js/config/supabase.js" defer></script>
+  <script src="../js/services/stockService.js" defer></script>
+  <script src="../js/shared/img.js" defer></script>
+
+</head>
+<body>
+
+  <div class="top-bar-ticker">
+    <div class="top-bar-track">
+      <span class="top-bar-item"><span class="top-bar-highlight">Free Shipping</span> on orders over <span class="top-bar-highlight">2,000 EGP</span> — All Governorates</span>
+      <span class="top-bar-dot">✦</span>
+      <span class="top-bar-item"><span class="top-bar-highlight">Free Shipping</span> on orders over <span class="top-bar-highlight">2,000 EGP</span> — All Governorates</span>
+      <span class="top-bar-dot">✦</span>
+      <span class="top-bar-item"><span class="top-bar-highlight">Free Shipping</span> on orders over <span class="top-bar-highlight">2,000 EGP</span> — All Governorates</span>
+      <span class="top-bar-dot">✦</span>
+    </div>
+  </div>
+
+  <nav class="navbar">
+    <div style="width:40px;"></div>
+    <div class="logo">Candella</div>
+    <div class="icons">
+      <a href="home.html" style="color:var(--navy);text-decoration:none;" title="Home"><i class="fa-solid fa-house"></i></a>
+      <a href="shop.html" style="color:var(--navy);text-decoration:none;" title="Shop"><i class="fa-solid fa-cart-shopping"></i></a>
+    </div>
+  </nav>
+
+  <div class="track-page">
+
+    <!-- Header -->
+    <div class="track-header">
+      <h1>Track Order</h1>
+      <p>Enter your 4-digit order number below</p>
+    </div>
+
+    <!-- Search -->
+    <div class="search-card">
+      <h3>🔍 Order Lookup</h3>
+      <div class="search-row">
+        <input type="text" id="orderInput" maxlength="4" placeholder="0000"
+          oninput="this.value=this.value.replace(/\D/g,'')"
+          onkeydown="if(event.key==='Enter')trackOrder()" />
+        <button class="track-btn" onclick="trackOrder()" id="trackBtn">
+          <i class="fa-solid fa-magnifying-glass"></i> Track
+        </button>
+      </div>
+      <div class="search-err" id="searchErr"></div>
+      <div class="autofill-hint" id="autofillHint">✨ We found your last order – click Track!</div>
+    </div>
+
+    <!-- Result card -->
+    <div class="order-card" id="orderCard"></div>
+
+    <!-- Not found -->
+    <div class="not-found" id="notFound">
+      <div class="nf-icon">🔍</div>
+      <p>No order found with this number.<br>Please check and try again.</p>
+    </div>
+
+    <!-- Help -->
+    <div class="help-box">
+      <p>Need help with your order?</p>
+      <a href="https://wa.me/201515346534" target="_blank">
+        <i class="fab fa-whatsapp"></i> Contact on WhatsApp
+      </a>
+    </div>
+
+  </div>
+
+  <script type="module" src="../js/pages/track.js"></script>
+<div id="cancelReasonOverlay" class="cancel-reason-overlay" style="display:none;">
+  <div class="cancel-reason-modal">
+    <h3>Cancel Order</h3>
+    <p>PLEASE SELECT A REASON</p>
+    <div class="cancel-reason-list">
+      <div class="cancel-reason-option"><input type="radio" name="cancelReason" id="cr1" value="Changed my mind"><label for="cr1">Changed my mind</label></div>
+      <div class="cancel-reason-option"><input type="radio" name="cancelReason" id="cr2" value="Ordered by mistake"><label for="cr2">Ordered by mistake</label></div>
+      <div class="cancel-reason-option"><input type="radio" name="cancelReason" id="cr3" value="Price is too high"><label for="cr3">Price is too high</label></div>
+      <div class="cancel-reason-option"><input type="radio" name="cancelReason" id="cr4" value="Delivery is too slow"><label for="cr4">Delivery is too slow</label></div>
+      <div class="cancel-reason-option"><input type="radio" name="cancelReason" id="cr5" value="Product quality concern"><label for="cr5">Product quality concern</label></div>
+      <div class="cancel-reason-option"><input type="radio" name="cancelReason" id="cr6" value="other" onchange="document.getElementById('cancelReasonOtherText').style.display='block'"><label for="cr6">Other reason</label></div>
+    </div>
+    <textarea id="cancelReasonOtherText" class="cancel-reason-other" rows="3" placeholder="Tell us more..."></textarea>
+    <div class="cancel-reason-btns">
+      <button class="cancel-reason-back" onclick="closeCancelReasonModal()">Go Back</button>
+      <button class="cancel-reason-confirm" onclick="confirmCancelWithReason()">Confirm Cancel</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

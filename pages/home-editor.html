@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Candella – Home Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="../js/config/supabase.js" defer></script>
+  <script src="../js/auth/adminAuth.js" defer></script>
+  <script src="../js/services/stockService.js" defer></script>
+  <script src="../js/shared/img.js" defer></script>
+</head>
+<body class="home-editor-scope">
+
+  <nav class="dash-nav">
+    <div class="logo">Candella</div>
+    <div class="nav-links">
+      <a href="dashboard.html"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+      <a href="products.html"><i class="fa-solid fa-box-open"></i> Products</a>
+      <button class="logout-btn" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </div>
+  </nav>
+
+  <!-- Login -->
+  <div class="login-wrap" id="loginSection">
+    <div class="login-card">
+      <div style="font-size:36px;margin-bottom:12px;">🏠</div>
+      <h2>Home Editor</h2>
+      <p>Sign in to manage the home page</p>
+      <input class="login-input" type="email" id="loginUser" placeholder="Email" />
+      <input class="login-input" type="password" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()" />
+      <button class="login-btn" onclick="doLogin()">Sign In</button>
+      <div class="login-error" id="loginError">Wrong username or password</div>
+    </div>
+  </div>
+
+  <!-- Main Editor -->
+  <div class="main-wrap" id="mainSection">
+
+    <!-- ══════════════════════════════════════════
+         1. SHOP DROPDOWN IMAGES
+    ══════════════════════════════════════════ -->
+    <div class="section-block">
+      <div class="section-title"><i class="fa-solid fa-images" style="color:var(--gold);"></i> Shop Dropdown Images</div>
+      <p class="section-hint">Images shown inside the Shop dropdown on the home page. Click any card to upload.</p>
+      <div class="img-grid" id="dropImgGrid">
+        <div style="color:#aaa;font-size:13px;grid-column:1/-1;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         2. CAROUSEL SLIDES (URL-based, like products)
+    ══════════════════════════════════════════ -->
+    <div class="section-block">
+      <div class="section-title"><i class="fa-solid fa-film" style="color:var(--gold);"></i> Carousel Order</div>
+      <p class="section-hint">The home page carousel mixes your products (best sellers first, by default) with any custom images you add here. Drag any image card anywhere you like, even ahead of a best seller. Out-of-stock products are hidden from this list but keep their spot and return automatically once restocked. Videos are kept in their own section below and always play after every image slide — drag to reorder among themselves there.</p>
+      <div class="url-row">
+        <input class="url-input" id="carouselUrlInput" type="text" placeholder="Paste image or video URL here…" onkeydown="if(event.key==='Enter')addCarouselSlide()" />
+        <button class="url-btn" onclick="addCarouselSlide()"><i class="fa-solid fa-plus"></i> Add Custom Slide</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;"><i class="fa-solid fa-image"></i> Images</div>
+        <button id="toggleImagesHiddenBtn" class="add-row-btn" onclick="toggleCarouselImagesHidden()" style="padding:6px 14px;font-size:11px;"><i class="fa-solid fa-eye-slash"></i> Hide Images from Home</button>
+      </div>
+      <div class="img-grid" id="carouselGrid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr));">
+        <div style="color:#aaa;font-size:13px;grid-column:1/-1;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
+      </div>
+
+      <div style="margin-top:24px;margin-bottom:10px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;"><i class="fa-solid fa-video"></i> Videos</div>
+      <div class="img-grid" id="carouselVideoGrid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr));">
+        <div style="color:#aaa;font-size:13px;grid-column:1/-1;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         2.4 CUSTOMER REVIEWS — MODERATION
+    ══════════════════════════════════════════ -->
+    <div class="section-block">
+      <div class="section-title"><i class="fa-solid fa-star" style="color:var(--gold);"></i> Customer Reviews</div>
+      <p class="section-hint">Every review a customer submits on the home page, in one place. Deleting one here removes it permanently from the home page for everyone else.</p>
+      <div id="reviewsManageList" style="display:flex;flex-direction:column;gap:12px;">
+        <div style="color:#aaa;font-size:13px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         2.5 CUSTOM BUILDER — STABLE-ID MIGRATION (one-time, run once)
+    ══════════════════════════════════════════ -->
+    <div class="section-block" style="border:1.5px solid var(--gold);">
+      <div class="section-title"><i class="fa-solid fa-database" style="color:var(--gold);"></i> Custom Builder — Stock Migration (Run Once)</div>
+      <p class="section-hint">
+        Assigns a permanent ID to every candle, container, and accessory, and embeds their cost/stock directly on each item.
+        Creates a backup of the current giftSet + customCosts data first (as new settings rows) before changing anything.
+        Safe to click more than once — items that already have an ID are skipped, nothing is duplicated.
+      </p>
+      <button class="add-row-btn" onclick="inspectGiftSetIds()" id="inspectIdsBtn"><i class="fa-solid fa-magnifying-glass"></i> Inspect IDs</button>
+      <button class="add-row-btn" onclick="runCatalogIntegrityCheck()" id="catalogCheckBtn" style="margin-left:10px;"><i class="fa-solid fa-list-check"></i> Custom Catalog Integrity Check</button>
+      <pre id="migrationReportBox" style="display:none;margin-top:14px;background:#0a0a0a;color:#9be39b;font-size:12px;padding:14px;border-radius:8px;white-space:pre-wrap;max-height:300px;overflow:auto;"></pre>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         3. BUILD YOUR GIFT SET — HERO IMAGE
+    ══════════════════════════════════════════ -->
+    <div class="section-block">
+      <div class="section-title"><i class="fa-solid fa-gift" style="color:var(--gold);"></i> Build Your Gift Set — Hero Image</div>
+      <p class="section-hint">Background image for the "Build Your Gift Set" hero section on custom.html.</p>
+      <div class="url-row">
+        <input class="url-input" id="giftHeroUrlInput" type="text" placeholder="Paste hero image URL…" />
+        <button class="url-btn" onclick="saveGiftHero()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+      </div>
+      <div id="giftHeroPreview" style="display:none;margin-top:12px;border-radius:12px;overflow:hidden;max-height:200px;">
+        <img id="giftHeroPreviewImg" src="" style="width:100%;height:200px;object-fit:cover;" />
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         4. BUILD YOUR GIFT SET — SIZES
+    ══════════════════════════════════════════ -->
+    <div class="section-block">
+      <div class="section-title"><i class="fa-solid fa-ruler" style="color:var(--gold);"></i> Gift Set — Sizes</div>
+      <p class="section-hint">Each size shown in Step 1 of the gift set builder. Sizes never have their own price — pricing starts from the candle choice, which already varies by size.</p>
+      <table class="list-table" id="sizesTable">
+        <thead><tr><th>Label</th><th>Weight</th><th>Image URL (optional)</th><th></th></tr></thead>
+        <tbody id="sizesTbody"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addSizeRow()"><i class="fa-solid fa-plus"></i> Add Size</button>
+      <br/>
+      <button class="save-btn" onclick="saveSizes()"><i class="fa-solid fa-floppy-disk"></i> Save Sizes</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         5. BUILD YOUR GIFT SET — CANDLES PER SIZE
+    ══════════════════════════════════════════ -->
+    <div class="section-block" id="candlesBySize">
+      <div class="section-title"><i class="fa-solid fa-fire-flame-curved" style="color:var(--gold);"></i> Gift Set — Candles (per Size)</div>
+      <p class="section-hint">Each size has its own candles. Select a size tab below to manage its candles (name, scent, image, price).</p>
+
+      <!-- Size tabs -->
+      <div id="sizeTabsBar" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">
+        <span style="color:#aaa;font-size:13px;">Loading sizes…</span>
+      </div>
+
+      <!-- Candles table for selected size -->
+      <div id="candlesForSizeWrap" style="display:none;">
+        <p style="font-size:12px;color:#999;margin-bottom:12px;">Candles for: <strong id="activeSizeLabel">—</strong></p>
+        <table class="list-table" id="candlesTable">
+          <thead><tr><th>Candle Name</th><th>Scent</th><th>Price (EGP)</th><th>Image URL</th><th></th></tr></thead>
+          <tbody id="candlesTbody"></tbody>
+        </table>
+        <button class="add-row-btn" onclick="addCandleRow()"><i class="fa-solid fa-plus"></i> Add Candle</button>
+        <br/>
+        <button class="save-btn" onclick="saveCandles()"><i class="fa-solid fa-floppy-disk"></i> Save Candles for this Size</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         7. BUILD YOUR GIFT SET — CONTAINERS
+         Flat shapes grouped by type (Wood/Glass/Concrete). Each shape
+         is one independent item — no variants. Cost/stock are managed
+         in products.html, same as candles.
+    ══════════════════════════════════════════ -->
+    <div class="section-block">
+      <div class="section-title"><i class="fa-solid fa-box" style="color:var(--gold);"></i> Gift Set — Containers</div>
+      <p class="section-hint">Pick a type, then manage the shapes that belong to it. Each shape has its own name, image, and price.</p>
+
+      <!-- Type cover images — shown on the 3 type cards in custom.html, independent of any shape's own image -->
+      <div style="margin-bottom:24px;">
+        <div class="field-label">Type Cover Images (shown on the Wood / Glass / Concrete cards customers click)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+          <div>
+            <label style="font-size:12px;color:#999;">Wood</label>
+            <input class="field-input" id="contTypeImg_wood" placeholder="https://…" />
+          </div>
+          <div>
+            <label style="font-size:12px;color:#999;">Glass</label>
+            <input class="field-input" id="contTypeImg_glass" placeholder="https://…" />
+          </div>
+          <div>
+            <label style="font-size:12px;color:#999;">Concrete</label>
+            <input class="field-input" id="contTypeImg_concrete" placeholder="https://…" />
+          </div>
+        </div>
+        <button class="save-btn" onclick="saveContTypeImages()" style="margin-top:10px;"><i class="fa-solid fa-floppy-disk"></i> Save Type Cover Images</button>
+      </div>
+
+      <!-- Type tabs -->
+      <div id="contTypeTabsBar" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">
+        <button class="add-row-btn" onclick="selectContType('wood')" id="contTypeTab_wood">Wood</button>
+        <button class="add-row-btn" onclick="selectContType('glass')" id="contTypeTab_glass">Glass</button>
+        <button class="add-row-btn" onclick="selectContType('concrete')" id="contTypeTab_concrete">Concrete</button>
+        <button class="add-row-btn" onclick="selectContType('uncategorized')" id="contTypeTab_uncategorized">Other / Uncategorized</button>
+      </div>
+
+      <p style="font-size:12px;color:#999;margin-bottom:12px;">Shapes for: <strong id="activeContTypeLabel">—</strong></p>
+      <table class="list-table" id="contShapesTable">
+        <thead><tr><th>Shape Name</th><th>Price (EGP)</th><th>Image URL</th><th></th></tr></thead>
+        <tbody id="contShapesTbody"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addContShapeRow()"><i class="fa-solid fa-plus"></i> Add Shape</button>
+      <br/>
+      <button class="save-btn" onclick="saveContShapes()"><i class="fa-solid fa-floppy-disk"></i> Save Shapes for this Type</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         8. BUILD YOUR GIFT SET — ACCESSORIES
+    ══════════════════════════════════════════ -->
+    <div class="section-block">
+      <div class="section-title"><i class="fa-solid fa-box-open" style="color:var(--gold);"></i> Gift Set — Accessories</div>
+      <p class="section-hint">Accessories shown in Step 4. Name, price, and optional image URL.</p>
+      <table class="list-table" id="accsTable">
+        <thead><tr><th>Name</th><th>Price (EGP)</th><th>Image URL</th><th></th></tr></thead>
+        <tbody id="accsTbody"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addAccRow()"><i class="fa-solid fa-plus"></i> Add Accessory</button>
+      <br/>
+      <button class="save-btn" onclick="saveAccs()"><i class="fa-solid fa-floppy-disk"></i> Save Accessories</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         9. MORE PAGES
+    ══════════════════════════════════════════ -->
+    <div class="section-block">
+      <div class="section-title"><i class="fa-solid fa-layer-group" style="color:var(--gold);"></i> More Pages</div>
+      <p class="section-hint">كل صفحة من صفحات "More" بتتكون من صورة رئيسية ونص. اختار الصفحة من التابز واعدل محتواها.</p>
+
+      <!-- Tabs -->
+      <div id="morePagesTabsBar" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;"></div>
+      <div style="margin-bottom:24px;">
+        <button onclick="addMoreSection()" style="padding:8px 16px;border-radius:999px;border:1px dashed var(--gold);background:#fff;color:var(--gold);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;cursor:pointer;letter-spacing:0.5px;">
+          <i class="fa-solid fa-plus"></i> Add Page
+        </button>
+      </div>
+
+      <!-- Editor for active section -->
+      <div id="morePageEditor" style="display:none;background:#f8f8f8;border-radius:12px;padding:24px;border:1px solid #e8e4df;">
+
+        <div style="font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:#1a2340;margin-bottom:20px;letter-spacing:0.5px;">
+          Editing: <span id="moreActiveLabel" style="color:#c9a24d;"></span>
+        </div>
+
+        <!-- Image upload -->
+        <div style="margin-bottom:20px;">
+          <div class="field-label">صورة الصفحة</div>
+          <div id="moreImgPreviewWrap" style="width:100%;height:220px;background:#f0ede8;border-radius:12px;overflow:hidden;position:relative;cursor:pointer;margin-bottom:10px;" onclick="triggerMoreImgUpload()">
+            <img id="moreImgPreview" src="" style="width:100%;height:100%;object-fit:cover;display:none;" />
+            <div id="moreImgPlaceholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:#bbb;">
+              <i class="fa-solid fa-cloud-arrow-up" style="font-size:32px;color:#c9a24d;"></i>
+              <span style="font-size:12px;font-family:'Montserrat',sans-serif;">Click to upload image</span>
+            </div>
+            <div class="upload-overlay"><i class="fa-solid fa-cloud-arrow-up" style="font-size:20px;"></i> Change Image</div>
+            <div id="moreImgUploading" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;color:#fff;flex-direction:column;gap:8px;">
+              <i class="fa-solid fa-spinner fa-spin" style="font-size:22px;"></i>
+              <span style="font-size:12px;">Uploading...</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <input class="url-input" id="moreImgUrlInput" type="text" placeholder="أو الصق رابط الصورة هنا…" style="flex:1;" />
+            <button class="url-btn" onclick="setMoreImgFromUrl()"><i class="fa-solid fa-link"></i> Use URL</button>
+            <button onclick="removeMoreImg()" style="background:none;border:1px solid #ddd;border-radius:8px;padding:9px 14px;cursor:pointer;color:#e55;font-size:12px;font-family:'Montserrat',sans-serif;">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Text -->
+        <div style="margin-bottom:20px;">
+          <div class="field-label">النص / المحتوى</div>
+          <textarea class="field-input" id="moreTextInput" rows="7" placeholder="اكتب محتوى الصفحة هنا..." style="resize:vertical;line-height:1.7;"></textarea>
+        </div>
+
+        <button class="save-btn" onclick="saveMorePage()"><i class="fa-solid fa-floppy-disk"></i> Save Page</button>
+      </div>
+    </div>
+
+  </div>
+
+  <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileSelect(this)" />
+  <input type="file" id="moreFileInput" accept="image/*" style="display:none" onchange="handleMoreFileSelect(this)" />
+  <div id="toast" class="toast"></div>
+
+  <script src="../js/pages/homeEditor.js" defer></script>
+</body>
+</html>

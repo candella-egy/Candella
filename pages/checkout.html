@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout | Candella</title>
+  <meta name="description" content="Complete your Candella order." />
+  <!-- noindex: a transactional page with personal order data has no
+       search-engine value and shouldn't appear in results. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="../js/config/supabase.js" defer></script>
+  <script src="../js/services/cartService.js" defer></script>
+  <script src="../js/services/orderService.js" defer></script>
+  <script src="../js/services/stockService.js" defer></script>
+  <script src="../js/shared/img.js" defer></script>
+
+</head>
+<body class="checkout-page">
+
+  <div class="pay-loading-overlay" id="payLoadingOverlay">
+    <div class="pay-spinner"></div>
+    <div class="pay-loading-text" id="payLoadingText">Preparing payment...</div>
+  </div>
+
+  <div class="top-bar">FREE SHIPPING ON ORDERS OVER 2,000 EGP</div>
+  <nav class="navbar">
+    <a href="home.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Shop</a>
+    <div class="logo">Candella</div>
+    <div class="icons">
+      <a href="home.html" style="color:var(--navy);text-decoration:none;" title="Home"><i class="fa-solid fa-house"></i></a>
+    </div>
+  </nav>
+
+  <div class="checkout-wrapper">
+    <div class="order-summary">
+      <h3>📦 Order Summary</h3>
+      <div id="summaryItems"></div>
+      <!-- Pricing breakdown -->
+      <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:14px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#888;margin-bottom:6px;">
+          <span>Subtotal</span><span>EGP <span id="subtotalVal">0</span></span>
+        </div>
+        <div style="display:none;justify-content:space-between;font-size:13px;color:#888;margin-bottom:6px;" id="discountRow">
+          <span>Discount <span id="discountPct" style="font-size:10px;background:var(--gold);color:white;padding:1px 6px;border-radius:3px;margin-left:4px;"></span></span>
+          <span style="color:#27ae60;">- EGP <span id="discountVal">0</span></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#888;margin-bottom:10px;" id="shippingRow">
+          <span>Shipping</span><span id="shippingVal">EGP <span id="shippingNum">0</span></span>
+        </div>
+        <!-- Promo code -->
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="promoInput" placeholder="Promo code" aria-label="Promo code" style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:1px;" oninput="this.value=this.value.toUpperCase()" />
+            <button onclick="applyPromo()" style="padding:8px 14px;background:var(--navy);color:white;border:none;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;cursor:pointer;">APPLY</button>
+          </div>
+          <div id="promoMsg" style="font-size:11px;margin-top:5px;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;color:var(--navy);border-top:1px solid var(--border);padding-top:10px;">
+          <span>Total</span><span>EGP <span id="summaryTotal">0</span></span>
+        </div>
+      </div>
+      <div id="cancelBoxContainer"></div>
+    </div>
+
+    <div class="checkout-form-wrap">
+      <h2>📋 Delivery Details</h2>
+
+      <div id="successMsg" style="display:none;"></div>
+
+      <div id="formContainer">
+        <div class="form-group">
+          <label for="fullName">Full Name *</label>
+          <input type="text" id="fullName" placeholder="e.g. Ahmed Mohamed" />
+          <span class="err" id="err_fullName"></span>
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone Number *</label>
+          <input type="tel" id="phone" placeholder="e.g. 01xxxxxxxxx" maxlength="11" />
+          <span class="err" id="err_phone"></span>
+        </div>
+        <div class="form-group">
+          <label for="governorate">Governorate *</label>
+          <select id="governorate">
+            <option value="">-- Select Governorate --</option>
+            <option>Cairo</option><option>Giza</option><option>Alexandria</option>
+            <option>Dakahlia</option><option>Beheira</option><option>Gharbia</option>
+            <option>Sharqia</option><option>Monufia</option><option>Qalyubia</option>
+            <option>Faiyum</option><option>Beni Suef</option><option>Minya</option>
+            <option>Assiut</option><option>Sohag</option><option>Qena</option>
+            <option>Luxor</option><option>Aswan</option><option>Red Sea</option>
+            <option>South Sinai</option><option>North Sinai</option>
+            <option>Port Said</option><option>Ismailia</option><option>Suez</option>
+            <option>Damietta</option><option>Kafr El Sheikh</option><option>Matrouh</option>
+            <option>New Valley</option>
+          </select>
+          <span class="err" id="err_governorate"></span>
+        </div>
+        <div class="form-group">
+          <label for="address">Detailed Address *</label>
+          <textarea id="address" placeholder="e.g. 12 Tahrir Street, Floor 3, Apt 12" rows="3"></textarea>
+          <span class="err" id="err_address"></span>
+        </div>
+        <div class="form-group">
+          <label for="notes">Additional Notes (optional)</label>
+          <textarea id="notes" placeholder="Any special delivery instructions..." rows="2"></textarea>
+        </div>
+
+        <!-- ══ Payment method ══ -->
+        <div class="payment-section">
+          <label>Payment Method *</label>
+          <div class="payment-options">
+            <div class="pay-option selected" id="opt_cash" onclick="selectPayment('cash')">
+              <input type="radio" name="payMethod" value="cash" checked />
+              <div class="pay-radio-dot"></div>
+              <div class="pay-icon">💵</div>
+              <div class="pay-body">
+                <div class="pay-title">Cash on Delivery</div>
+                <div class="pay-desc">Pay when your order arrives</div>
+              </div>
+            </div>
+
+          </div>
+          <span class="err" id="err_payment"></span>
+        </div>
+
+        <button class="checkout-btn full-width" onclick="submitOrder()" id="submitBtn">
+          <i class="fa-solid fa-paper-plane"></i> <span id="submitLabel">Confirm Order</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="../js/pages/checkout.js"></script>
+<div id="cancelReasonOverlay" class="cancel-reason-overlay" style="display:none;">
+  <div class="cancel-reason-modal">
+    <h3>Cancel Order</h3>
+    <p>PLEASE SELECT A REASON</p>
+    <div class="cancel-reason-list">
+      <div class="cancel-reason-option"><input type="radio" name="cancelReason" id="cr1" value="Changed my mind"><label for="cr1">Changed my mind</label></div>
+      <div class="cancel-reason-option"><input type="radio" name="cancelReason" id="cr2" value="Ordered by mistake"><label for="cr2">Ordered by mistake</label></div>
+      <div class="cancel-reason-option"><input type="radio" name="cancelReason" id="cr3" value="Price is too high"><label for="cr3">Price is too high</label></div>
+      <div class="cancel-reason-option"><input type="radio" name="cancelReason" id="cr4" value="Delivery is too slow"><label for="cr4">Delivery is too slow</label></div>
+      <div class="cancel-reason-option"><input type="radio" name="cancelReason" id="cr5" value="Product quality concern"><label for="cr5">Product quality concern</label></div>
+      <div class="cancel-reason-option"><input type="radio" name="cancelReason" id="cr6" value="other" onchange="document.getElementById('cancelReasonOtherText').style.display='block'"><label for="cr6">Other reason</label></div>
+    </div>
+    <textarea id="cancelReasonOtherText" class="cancel-reason-other" rows="3" placeholder="Tell us more..."></textarea>
+    <div class="cancel-reason-btns">
+      <button class="cancel-reason-back" onclick="closeCancelReasonModal()">Go Back</button>
+      <button class="cancel-reason-confirm" onclick="confirmCancelWithReason()">Confirm Cancel</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

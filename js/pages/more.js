@@ -1,0 +1,91 @@
+// js/pages/more.js
+// Moved verbatim out of the one <script type="module"> block in
+// pages/more.html. Loaded as
+// <script type="module" src="../js/pages/more.js"></script>.
+
+// ════════════════════════════════════════════
+// SUPABASE SETUP
+// ════════════════════════════════════════════
+const sb = window.createSupabaseClient();
+
+const DEFAULT_SECTIONS = [
+  { key: 'why_candella',        label: 'Why Candella?' },
+  { key: 'about_scents',        label: 'About Candella Scents' },
+  { key: 'blog',                label: 'Blog' },
+  { key: 'wholesale',           label: 'Wholesale' },
+  { key: 'how_much',            label: 'How Much Candella Do I Need?' },
+  { key: 'about_us',            label: 'About Us' },
+  { key: 'plant_based',         label: 'Plant-Based Candles' },
+  { key: 'refillable',          label: 'Refillable, Reusable Candles' },
+  { key: 'instructions',        label: 'Instructions' },
+  { key: 'press',               label: 'Press' },
+];
+var SECTIONS = DEFAULT_SECTIONS.slice();
+
+var pagesData = {}; // key → { img, text }
+var activeKey = SECTIONS[0].key;
+
+// Check URL param ?section=key
+var urlParams = new URLSearchParams(window.location.search);
+var initSection = urlParams.get('section');
+if (initSection) activeKey = initSection;
+
+function buildNav() {
+  var strip = document.getElementById('moreNavStrip');
+  if (!strip) return;
+  strip.innerHTML = SECTIONS.map(function(s) {
+    return '<button class="more-nav-item' + (s.key === activeKey ? ' active' : '') + '" onclick="showSection(\'' + s.key + '\')">' + s.label + '</button>';
+  }).join('');
+
+  // Desktop sidebar: also populate directly (strip is inside sidebar on desktop)
+}
+
+function renderContent() {
+  var content = document.getElementById('moreContent');
+  if (!content) return;
+  var s = SECTIONS.find(function(x){ return x.key === activeKey; });
+  if (!s) { s = SECTIONS[0]; if (s) activeKey = s.key; }
+  if (!s) { content.innerHTML = '<p class="more-page-empty">No pages available.</p>'; return; }
+  var d = pagesData[activeKey] || {};
+  var imgHtml = d.img
+    ? '<img class="more-page-img" src="' + d.img + '" alt="' + s.label + '" />'
+    : '<div class="more-page-img-placeholder"><i class="fa-solid fa-image"></i></div>';
+  var textHtml = d.text
+    ? '<p class="more-page-text">' + d.text.replace(/</g,'&lt;') + '</p>'
+    : '<p class="more-page-empty">No content yet. Add it from the Home Editor.</p>';
+  content.innerHTML = imgHtml
+    + '<h1 class="more-page-title">' + s.label + '</h1>'
+    + textHtml;
+}
+
+window.showSection = function(key) {
+  activeKey = key;
+  // update nav active state
+  document.querySelectorAll('.more-nav-item').forEach(function(el) {
+    el.classList.toggle('active', el.textContent.trim() === SECTIONS.find(function(s){ return s.key === key; }).label);
+  });
+  renderContent();
+  // update URL without reload
+  history.replaceState(null, '', '?section=' + key);
+  // Jump straight to the content (was scrolling to the very top of the
+  // page instead, which on mobile just re-showed the long sidebar list
+  // the customer had to scroll past again).
+  var content = document.getElementById('moreContent');
+  if (content) content.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+// Load from Supabase
+(async function loadMorePages() {
+  try {
+    const { data: row, error } = await sb.from('settings').select('value').eq('key', 'morePages').maybeSingle();
+    if (error) throw error;
+    pagesData = (row && row.value) ? row.value : {};
+    SECTIONS = (pagesData._meta && Array.isArray(pagesData._meta.sections) && pagesData._meta.sections.length)
+      ? pagesData._meta.sections.slice() : DEFAULT_SECTIONS.slice();
+  } catch(e) {
+    pagesData = {};
+    SECTIONS = DEFAULT_SECTIONS.slice();
+  }
+  buildNav();
+  renderContent();
+})();

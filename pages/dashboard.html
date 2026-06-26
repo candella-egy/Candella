@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Candella – Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="../js/config/supabase.js" defer></script>
+  <script src="../js/services/stockService.js" defer></script>
+  <script src="../js/shared/img.js" defer></script>
+  </head>
+<body class="dash-scope">
+
+  <nav class="dash-nav">
+    <div class="logo">🕯️ Candella</div>
+    <div class="nav-links">
+      <a href="#" id="manageProductsLink" onclick="goToProducts();return false;"><i class="fa-solid fa-box-open"></i> Manage Products</a>
+      <a href="#" id="homeEditorLink" onclick="goToHomeEditor();return false;"><i class="fa-solid fa-house-circle-check"></i> Home Editor</a>
+      <a href="#" id="manageEmployeesLink" onclick="openEmployeesModal();return false;" style="display:none;"><i class="fa-solid fa-users-gear"></i> Manage Employees</a>
+      <a href="home.html" target="_blank"><i class="fa-solid fa-store"></i> View Store</a>
+      <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+    </div>
+  </nav>
+
+  <!-- LOGIN -->
+  <div id="loginSection" class="login-wrap">
+    <div class="login-card">
+      <div style="font-size:40px;margin-bottom:12px;">🕯️</div>
+      <h2>Admin Dashboard</h2>
+      <p>Enter your credentials to access orders</p>
+      <input class="login-input" type="email" id="adminUser" placeholder="Email" />
+      <div style="position:relative;margin-bottom:14px;">
+        <input class="login-input" type="password" id="adminPass" placeholder="Password"
+          onkeydown="if(event.key==='Enter')login()"
+          style="margin-bottom:0;padding-right:48px;width:100%;" />
+        <button onclick="toggleLoginPw()" type="button"
+          style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;">
+          <i class="fa-solid fa-eye" id="loginEyeIcon"></i>
+        </button>
+      </div>
+      <button class="login-btn" onclick="login()"><i class="fa-solid fa-lock-open"></i> Login</button>
+      <div class="login-err" id="loginErr"></div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashSection" style="display:none;">
+    <div class="dash-wrap">
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon">📦</div>
+          <div class="stat-num" id="statTotal">0</div>
+          <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🆕</div>
+          <div class="stat-num" id="statNew">0</div>
+          <div class="stat-label">New Orders</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-num" id="statConfirmed">0</div>
+          <div class="stat-label">Confirmed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🏠</div>
+          <div class="stat-num" id="statDelivered">0</div>
+          <div class="stat-label">Delivered</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">❌</div>
+          <div class="stat-num" id="statCancelled">0</div>
+          <div class="stat-label">Cancelled</div>
+        </div>
+        <div class="stat-card super-only" id="cardRevenue" data-perm="view_financials" style="display:none;">
+          <div class="stat-icon">💰</div>
+          <div class="stat-num" id="statRevenue">EGP 0</div>
+          <div class="stat-label">Net Revenue</div>
+        </div>
+        <div class="stat-card super-only" id="cardProductRev" data-perm="view_financials" style="border:2px solid rgba(201,162,77,0.35);display:none;">
+          <div class="stat-icon">🛍️</div>
+          <div class="stat-num" id="statProductRev">EGP 0</div>
+          <div class="stat-label">Products Revenue</div>
+        </div>
+        <div class="stat-card super-only" id="cardShippingRev" data-perm="view_financials" style="border:2px solid rgba(39,174,96,0.35);display:none;">
+          <div class="stat-icon">🚚</div>
+          <div class="stat-num" id="statShippingRev" style="color:#27ae60;">EGP 0</div>
+          <div class="stat-label">Shipping Revenue</div>
+        </div>
+        <div class="stat-card super-only" id="cardProfit" data-perm="view_financials" style="border:2px solid rgba(167,139,250,0.45);display:none;">
+          <div class="stat-icon">📈</div>
+          <div class="stat-num" id="statProfit" style="color:#7c3aed;">EGP 0</div>
+          <div class="stat-label">Estimated Profit</div>
+        </div>
+
+      </div>
+
+      <!-- Monthly Export -->
+      <div class="export-section super-only" id="monthlyExportSection" data-perm="export_monthly" style="display:none;">
+        <h3><i class="fa-solid fa-file-excel"></i> Export by Month</h3>
+        <div class="export-row">
+          <select class="filter-select" id="exportMonth">
+            <option value="">-- Select Month --</option>
+          </select>
+          <button class="export-btn" onclick="exportMonthly()">
+            <i class="fa-solid fa-download"></i> Download Excel
+          </button>
+        </div>
+      </div>
+
+      <!-- Daily Export -->
+      <div class="export-section">
+        <h3><i class="fa-solid fa-calendar-day"></i> تقرير يومي</h3>
+        <div class="export-row">
+          <input type="date" class="filter-select" id="exportDay" style="padding:9px 16px;min-width:160px;" />
+          <button class="export-btn" onclick="exportDaily()" style="background:#1a5276;">
+            <i class="fa-solid fa-download"></i> تحميل تقرير اليوم
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ MONTHLY CLOSING (تقفيل الشهر) — super only ══ -->
+      <div class="export-section super-only" id="monthlyClosingSection" data-perm="monthly_closing" style="display:none;">
+        <h3><i class="fa-solid fa-scale-balanced"></i> تقفيل الشهر — هل كسبت ولا خسرت؟</h3>
+        <div class="export-row" style="margin-bottom:18px;">
+          <select class="filter-select" id="closingMonth" onchange="window.loadMonthlyClosing()">
+            <option value="">-- اختار الشهر --</option>
+          </select>
+          <span id="closingSaveStatus" style="font-size:12px;color:#888;"></span>
+        </div>
+
+        <div id="closingBody" style="display:none;">
+
+          <!-- العمال -->
+          <div class="closing-block">
+            <h4>👷 العمال والرواتب</h4>
+            <table class="closing-table" id="closingEmpTable">
+              <thead><tr><th>اسم العامل</th><th>المهمة</th><th>الراتب (EGP)</th><th>بدل (EGP)</th><th></th></tr></thead>
+              <tbody id="closingEmpBody"></tbody>
+            </table>
+            <button class="closing-add-btn" onclick="window.closingAddRow('emp')">+ إضافة عامل</button>
+            <div class="closing-subtotal">إجمالي الرواتب: <b id="closingEmpTotal">EGP 0</b></div>
+          </div>
+
+          <!-- المصاريف الثابتة -->
+          <div class="closing-block">
+            <h4>🏢 المصاريف الثابتة</h4>
+            <table class="closing-table" id="closingFixTable">
+              <thead><tr><th>البند</th><th>المبلغ (EGP)</th><th></th></tr></thead>
+              <tbody id="closingFixBody"></tbody>
+            </table>
+            <button class="closing-add-btn" onclick="window.closingAddRow('fix')">+ إضافة بند</button>
+            <div class="closing-subtotal">إجمالي المصاريف الثابتة: <b id="closingFixTotal">EGP 0</b></div>
+          </div>
+
+          <!-- التسويق -->
+          <div class="closing-block">
+            <h4>📣 التسويق والمبيعات</h4>
+            <table class="closing-table" id="closingMktTable">
+              <thead><tr><th>البند</th><th>المبلغ (EGP)</th><th></th></tr></thead>
+              <tbody id="closingMktBody"></tbody>
+            </table>
+            <button class="closing-add-btn" onclick="window.closingAddRow('mkt')">+ إضافة بند</button>
+            <div class="closing-subtotal">إجمالي التسويق: <b id="closingMktTotal">EGP 0</b></div>
+          </div>
+
+          <!-- النثريات -->
+          <div class="closing-block">
+            <h4>🛒 النثريات والمصاريف المتنوعة</h4>
+            <table class="closing-table" id="closingMiscTable">
+              <thead><tr><th>البند</th><th>المبلغ (EGP)</th><th></th></tr></thead>
+              <tbody id="closingMiscBody"></tbody>
+            </table>
+            <button class="closing-add-btn" onclick="window.closingAddRow('misc')">+ إضافة بند</button>
+            <div class="closing-subtotal">إجمالي النثريات: <b id="closingMiscTotal">EGP 0</b></div>
+          </div>
+
+          <!-- تكلفة المنتجات -->
+          <div class="closing-block">
+            <h4>📦 تكلفة المنتجات المباعة هذا الشهر</h4>
+            <p style="font-size:11px;color:#888;margin:0 0 8px;">المنتجات اللي اتباعت الشهر ده اتجابت تلقائي من الأوردرات — اكتب تكلفة الوحدة لكل واحد (زي ما حسبتها في الإكسل)</p>
+            <table class="closing-table" id="closingProdTable">
+              <thead><tr><th>المنتج</th><th>الكمية المباعة</th><th>تكلفة الوحدة (EGP)</th><th>الإجمالي (EGP)</th></tr></thead>
+              <tbody id="closingProdBody"></tbody>
+            </table>
+            <div class="closing-subtotal">إجمالي تكلفة البضاعة المباعة: <b id="closingCogsTotal">EGP 0</b></div>
+          </div>
+
+          <button class="export-btn" onclick="window.saveMonthlyClosing()" style="background:#1d6f42;margin-top:8px;">
+            <i class="fa-solid fa-floppy-disk"></i> حفظ بيانات الشهر
+          </button>
+
+          <button class="export-btn" onclick="window.exportClosingExcel()" style="background:#1a5276;margin-top:8px;">
+            <i class="fa-solid fa-file-excel"></i> تحميل نسخة Excel
+          </button>
+
+          <!-- النتيجة النهائية -->
+          <div class="closing-result" id="closingResult">
+            <div class="closing-result-row">
+              <span>إيراد المبيعات (من الأوردرات)</span>
+              <b id="closingRevenue">EGP 0</b>
+            </div>
+            <div class="closing-result-row">
+              <span>− تكلفة البضاعة المباعة</span>
+              <b id="closingCogsLine">EGP 0</b>
+            </div>
+            <div class="closing-result-row" style="border-top:1px solid rgba(255,255,255,0.15);padding-top:8px;">
+              <span>= مجمل الربح</span>
+              <b id="closingGrossProfit">EGP 0</b>
+            </div>
+            <div class="closing-result-row">
+              <span>− إجمالي المصاريف التشغيلية</span>
+              <b id="closingOpexLine">EGP 0</b>
+            </div>
+            <div class="closing-result-row closing-final">
+              <span id="closingFinalLabel">صافي الربح</span>
+              <b id="closingNetProfit">EGP 0</b>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══ CUSTOMER TRACKER ══ -->
+      <div class="tracker-section">
+        <div class="tracker-header">
+          <h2>📋 Customer Tracker</h2>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div class="tracker-tabs">
+              <button class="tracker-tab active" onclick="switchTab('delivered')">✅ Delivered</button>
+              <button class="tracker-tab" onclick="switchTab('cancelled')">❌ Cancelled</button>
+
+            </div>
+            <button class="export-btn" onclick="exportTrackerExcel()" style="background:#1d6f42;">
+              <i class="fa-solid fa-file-excel"></i> Export Excel
+            </button>
+          </div>
+        </div>
+        <div class="tracker-body">
+          <!-- Delivered Panel -->
+          <div class="tracker-panel active" id="panel-delivered">
+            <table class="tracker-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Order #</th>
+                  <th>Customer Name</th>
+                  <th>Phone</th>
+                  <th>Governorate</th>
+                  <th>Total (EGP)</th>
+                  <th>Date</th>
+                  <th>WhatsApp</th>
+                </tr>
+              </thead>
+              <tbody id="deliveredBody"></tbody>
+            </table>
+            <div id="deliveredEmpty" class="tracker-empty" style="display:none;">لا يوجد طلبات تم تسليمها بعد</div>
+          </div>
+          <!-- Cancelled Panel -->
+          <div class="tracker-panel" id="panel-cancelled">
+            <table class="tracker-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Order #</th>
+                  <th>Customer Name</th>
+                  <th>Phone</th>
+                  <th>Governorate</th>
+                  <th>Total (EGP)</th>
+                  <th>Date</th>
+                  <th>WhatsApp</th>
+                </tr>
+              </thead>
+              <tbody id="cancelledBody"></tbody>
+            </table>
+            <div id="cancelledEmpty" class="tracker-empty" style="display:none;">لا يوجد طلبات ملغية بعد</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="dash-toolbar">
+        <h2>📋 Orders</h2>
+        <div class="toolbar-right">
+          <input class="search-input" type="text" id="searchInput" placeholder="🔍 رقم الطلب، الاسم، أو التليفون..." oninput="renderOrders()" />
+          <input type="date" class="filter-select" id="dateFilter" onchange="renderOrders()" title="فلتر بالتاريخ" style="padding:9px 14px;min-width:150px;" />
+          <button onclick="clearDateFilter()" title="مسح الفلتر" style="padding:9px 12px;border-radius:999px;border:1px solid #ddd4c0;background:#f5f0e8;cursor:pointer;font-size:13px;color:#888;" title="إزالة فلتر التاريخ">✕</button>
+          <select class="filter-select" id="statusFilter" onchange="renderOrders()">
+            <option value="all">All Status</option>
+            <option value="new">New</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="shipped">Out for Delivery</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <button class="action-btn btn-view" onclick="loadOrders()" style="padding:9px 16px;font-size:13px;">
+            <i class="fa-solid fa-rotate"></i> Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="orders-wrap">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Order #</th>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Governorate</th>
+              <th>Items</th>
+              <th>Total (EGP)</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+        <div id="emptyState" class="empty-state" style="display:none;">
+          <div class="empty-icon">📭</div>
+          <p>No orders found</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PASSWORD MODAL -->
+  <div id="pwModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:900;align-items:center;justify-content:center;">
+    <div style="background:#faf6ef;border-radius:16px;padding:32px 28px;width:min(360px,90%);box-shadow:0 20px 60px rgba(0,0,0,0.25);text-align:center;position:relative;">
+      <button onclick="closePwModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;">✕</button>
+      <div style="font-size:36px;margin-bottom:10px;">🔐</div>
+      <h3 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:6px;color:#111;">تأكيد المشرف</h3>
+      <p style="font-size:12px;color:#aaa;margin-bottom:20px;letter-spacing:0.5px;">أدخل باسورد المشرف لتغيير الحالة</p>
+      <div style="position:relative;margin-bottom:10px;">
+        <input id="pwInput" type="password" placeholder="الباسورد" onkeydown="if(event.key==='Enter')submitPwModal()"
+          style="width:100%;padding:13px 44px 13px 16px;border:2px solid #ddd4c0;border-radius:10px;font-family:'Montserrat',sans-serif;font-size:15px;background:#f5f0e8;outline:none;text-align:center;letter-spacing:3px;transition:0.2s;"
+          onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#ddd4c0'" />
+        <button onclick="togglePwVisibility()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;font-size:16px;">
+          <i class="fa-solid fa-eye" id="pwEyeIcon"></i>
+        </button>
+      </div>
+      <div id="pwErr" style="color:#e74c3c;font-size:12px;min-height:18px;margin-bottom:10px;"></div>
+      <button onclick="submitPwModal()" style="width:100%;padding:13px;border-radius:999px;border:none;background:var(--gold);color:white;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:0.2s;" onmouseover="this.style.background='var(--gold-2)'" onmouseout="this.style.background='var(--gold)'">
+        <i class="fa-solid fa-unlock"></i> تأكيد
+      </button>
+    </div>
+  </div>
+
+  <!-- EMPLOYEES MANAGEMENT MODAL (super only) -->
+  <div id="empModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:950;align-items:center;justify-content:center;padding:20px;">
+    <div style="background:#faf6ef;border-radius:18px;padding:32px;width:min(640px,100%);max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);position:relative;">
+      <button onclick="closeEmployeesModal()" style="position:absolute;top:18px;right:20px;background:none;border:none;font-size:22px;cursor:pointer;color:#aaa;">✕</button>
+      <h2 style="font-family:'Playfair Display',serif;font-size:22px;margin-bottom:6px;color:#111;">👥 إدارة الموظفين</h2>
+      <p style="font-size:13px;color:#888;margin-bottom:24px;">أضف موظفين جدد وحدد صلاحياتهم في الداشبورد.</p>
+
+      <!-- Existing employees list -->
+      <div id="empList" style="margin-bottom:28px;display:flex;flex-direction:column;gap:10px;"></div>
+
+      <hr style="border:none;border-top:1px solid rgba(201,162,77,0.2);margin:24px 0;" />
+
+      <h3 style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:16px;">➕ إضافة موظف جديد</h3>
+
+      <input id="empEmail" type="email" placeholder="الإيميل" class="login-input" style="margin-bottom:12px;" />
+      <input id="empPassword" type="password" placeholder="الباسورد" class="login-input" style="margin-bottom:16px;" />
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="permFinancials" /> عرض الإيرادات والأرباح
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="permExportMonthly" /> تصدير إكسل شهري
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="permMonthlyClosing" /> تقفيل الشهر
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="permViewProducts" /> فتح صفحة المنتجات
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+          <input type="checkbox" id="permViewHomeEditor" /> فتح صفحة الهوم إديتور
+        </label>
+      </div>
+
+      <div id="empAddErr" style="color:#e74c3c;font-size:13px;min-height:18px;margin-bottom:10px;"></div>
+      <button onclick="submitNewEmployee()" class="login-btn" style="width:100%;">
+        <i class="fa-solid fa-user-plus"></i> إضافة الموظف
+      </button>
+    </div>
+  </div>
+
+  <!-- PRODUCT DETAIL POPUP -->
+  <div class="modal-overlay" id="productPopupOverlay" onclick="closeProductPopup(event)" style="z-index:800;">
+    <div class="modal" id="productPopup" style="max-width:380px;padding:24px;z-index:801;">
+      <button class="modal-close" onclick="document.getElementById('productPopupOverlay').classList.remove('show')">&#10005;</button>
+      <div id="productPopupContent"></div>
+    </div>
+  </div>
+
+  <!-- ORDER MODAL -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)" style="z-index:600;">
+    <div class="modal" id="orderModal" style="z-index:601;">
+      <button class="modal-close" onclick="closeModal()">&#10005;</button>
+      <h3>📦 Order Details</h3>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script type="module" src="../js/pages/dashboard.js"></script>
+</body>
+</html>

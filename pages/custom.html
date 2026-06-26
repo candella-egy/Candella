@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Build Your Own Custom Gift Set | Candella</title>
+  <meta name="description" content="Design your own Candella gift set — pick a size, choose your candle scent, container, and accessories, all in one custom build." />
+  <meta name="robots" content="index, follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Candella" />
+  <meta property="og:title" content="Build Your Own Custom Gift Set | Candella" />
+  <meta property="og:description" content="Design your own Candella gift set — pick a size, candle, container, and accessories." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Build Your Own Custom Gift Set | Candella" />
+  <meta name="twitter:description" content="Design your own Candella gift set — pick a size, candle, container, and accessories." />
+  <!-- canonical / og:url intentionally omitted — no production domain yet. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Cormorant+Garamond:wght@300;400;600&family=Assistant:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/custom.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="../js/config/supabase.js" defer></script>
+  <script src="../js/services/stockService.js" defer></script>
+  <script src="../js/services/cartService.js" defer></script>
+  <script src="../js/services/customGiftService.js" defer></script>
+  <script src="../js/shared/img.js" defer></script>
+  </head>
+<body class="custom-scope">
+
+  <!-- Top Bar -->
+  <div class="top-bar-ticker">
+    <div class="top-bar-track">
+      <span class="top-bar-item"><span class="top-bar-highlight">Free Shipping</span> on orders over <span class="top-bar-highlight">2,000 EGP</span> — All Governorates</span>
+      <span class="top-bar-dot">✦</span>
+      <span class="top-bar-item"><span class="top-bar-highlight">Free Shipping</span> on orders over <span class="top-bar-highlight">2,000 EGP</span> — All Governorates</span>
+      <span class="top-bar-dot">✦</span>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="home.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back</a>
+    <div class="logo">Candella</div>
+    <div style="display:flex;align-items:center;gap:20px;">
+      <a href="home.html" style="color:var(--main-text);text-decoration:none;font-size:17px;" title="Home"><i class="fa-solid fa-house"></i></a>
+      <span onclick="goCheckout()" style="cursor:pointer;color:var(--main-text);position:relative;font-size:17px;">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span id="cartBadge" class="cart-badge">0</span>
+      </span>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <section class="build-hero" id="buildHero" style="background-image:url('../assets/images/custom/build-hero-bg.png')">
+    <div class="build-hero-content">
+      <h1>Build Your Own<br>Gift Set</h1>
+      <p>Craft your perfect Candella experience</p>
+      <a href="#wizard" class="hero-start-btn">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Start Building
+      </a>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════
+       HOW IT WORKS — 4 STEPS
+  ══════════════════════════════════════════ -->
+  <section style="padding: 90px 20px; background: #ffffff; text-align: center;">
+    <h2 style="font-family: 'Playfair Display', serif; font-size: clamp(22px, 3.5vw, 36px); font-weight: 700; color: #1a1a2e; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 40px; line-height: 1.3;">
+      Create Your Custom Set<br>In 4 Simple Steps:
+    </h2>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 18px;">
+      <div style="font-family: 'Assistant', sans-serif; font-size: 16px; color: #333; letter-spacing: 0.5px;">1. Select your candle size.</div>
+      <div style="font-family: 'Assistant', sans-serif; font-size: 16px; color: #333; letter-spacing: 0.5px;">2. Choose your scent or color.</div>
+      <div style="font-family: 'Assistant', sans-serif; font-size: 16px; color: #333; letter-spacing: 0.5px;">3. Pick a container to match your style.</div>
+      <div style="font-family: 'Assistant', sans-serif; font-size: 16px; color: #333; letter-spacing: 0.5px;">4. Add accessories or add-ons to complete your set.</div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════
+       STEP 1 — CHOOSE YOUR CANDLE SIZE
+  ══════════════════════════════════════════ -->
+  <section id="step1" style="padding: 80px 40px; background: #fff; text-align: center;">
+    <h2 style="font-family: 'Playfair Display', serif; font-size: clamp(20px, 3vw, 32px); font-weight: 700; color: #1a1a2e; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 50px;">
+      1. Choose Your Candle
+    </h2>
+
+    <div id="sizeGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; max-width: 1000px; margin: 0 auto;">
+      <div style="color:#aaa; font-size:13px; text-align:center; padding:30px; grid-column:1/-1;">
+        <i class="fa-solid fa-spinner fa-spin"></i> Loading...
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── PROGRESS BAR ── -->
+  <div class="prog-bar-wrap" id="progBarWrap">
+    <div class="prog-bar">
+      <div class="prog-step active" id="prog-1">
+        <div class="prog-num">1</div>
+        <div class="prog-label">Candles</div>
+      </div>
+      <div class="prog-step" id="prog-2">
+        <div class="prog-num">2</div>
+        <div class="prog-label">Scents</div>
+      </div>
+      <div class="prog-step" id="prog-3">
+        <div class="prog-num">3</div>
+        <div class="prog-label">Containers</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STEP 2 — CHOOSE YOUR SCENT OR COLOR
+  ══════════════════════════════════════════ -->
+  <section id="step2" style="padding: 60px 40px; background: #fff; text-align: center;">
+    <h2 id="step2Title" style="font-family: 'Playfair Display', serif; font-size: clamp(20px, 3vw, 32px); font-weight: 700; color: #1a1a2e; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 12px;">
+      2. Choose Your Scent or Color
+    </h2>
+    <p id="step2Subtitle" style="font-family:'Assistant',sans-serif;font-size:13px;color:#999;letter-spacing:1px;margin-bottom:44px;"></p>
+    <div class="candle-grid" id="candleGrid">
+      <div style="color:#aaa;font-size:13px;grid-column:1/-1;text-align:center;padding:30px;">
+        Select a size above first.
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════
+       STEP 3 — CONTAINERS
+  ══════════════════════════════════════════ -->
+  <section id="step3" style="padding: 60px 40px; background: #fafafa; text-align: center;">
+    <h2 style="font-family: 'Playfair Display', serif; font-size: clamp(18px, 2.5vw, 28px); font-weight: 700; color: #1a1a2e; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px;">
+      3. Choose a Container
+    </h2>
+    <p style="font-family:'Assistant',sans-serif;font-size:13px;color:#999;letter-spacing:1px;margin-bottom:30px;">يمكنك اختيار أكثر من نوع</p>
+
+    <!-- One card per TYPE (Wood / Glass / Concrete). Clicking "Add" opens
+         a popup listing the shapes of that type. -->
+    <div class="container-grid" id="containerGrid"></div>
+  </section>
+
+  <!-- ── CONTAINER TYPE MODAL — shapes for the selected type ── -->
+  <div class="cont-modal-backdrop" id="contModalBackdrop" onclick="closeContModal(event)">
+    <div class="cont-modal" id="contModal" onclick="event.stopPropagation()">
+      <button class="cont-modal-close" onclick="closeContModal()">✕</button>
+      <!-- Gallery -->
+      <div class="cont-modal-gallery" id="contModalGallery">
+        <div class="cont-modal-main-placeholder" id="contModalMainPlaceholder">📦</div>
+        <img id="contModalMainImg" class="cont-modal-main-img" src="" alt="Container preview" style="display:none;" />
+      </div>
+      <!-- Info -->
+      <div class="cont-modal-info">
+        <div class="cont-modal-title" id="contModalTitle">Container</div>
+        <select class="cont-modal-select" id="contModalShapeSel" onchange="contModalShapeChange()"></select>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div class="cont-modal-price">EGP <span id="contModalPrice">0</span></div>
+          <button class="cont-modal-add-btn" id="contModalAddBtn" onclick="contModalAdd()">Add</button>
+          <div class="cont-modal-qty-wrap" id="contModalQtyWrap" style="display:none;align-items:center;gap:12px;">
+            <button class="cont-modal-qty-btn" onclick="contModalChangeQty(-1)">−</button>
+            <span id="contModalQtyVal">1</span>
+            <button class="cont-modal-qty-btn" onclick="contModalChangeQty(1)">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STEP 4 — ACCESSORIES
+  ══════════════════════════════════════════ -->
+  <section id="step4" style="padding: 60px 40px; background: #fff; text-align: center;">
+    <h2 style="font-family: 'Playfair Display', serif; font-size: clamp(18px, 2.5vw, 28px); font-weight: 700; color: #1a1a2e; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px;">
+      4. Add Accessories
+    </h2>
+    <p style="font-family:'Assistant',sans-serif;font-size:13px;color:#999;letter-spacing:1px;margin-bottom:44px;">Optional: Choose accessories to complete your set</p>
+    <div class="candle-grid" id="accessoriesGrid">
+      <div style="color:#aaa;font-size:13px;grid-column:1/-1;text-align:center;padding:30px;">
+        <i class="fa-solid fa-spinner fa-spin"></i> Loading...
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       ORDER SUMMARY
+  ══════════════════════════════════════════ -->
+  <section id="orderSummary" style="padding: 80px 40px; background: var(--navy); text-align: center; min-height: 100vh; display: none;">
+    <div style="max-width: 900px; margin: 0 auto;">
+      <h2 style="font-family: 'Playfair Display', serif; font-size: clamp(24px, 4vw, 42px); font-weight: 700; color: #fff; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 60px;">
+        Order Summary
+      </h2>
+
+      <!-- Order Details -->
+      <div style="background: var(--navy-2); border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; padding: 50px 40px; margin-bottom: 40px;">
+
+        <!-- Size -->
+        <div style="padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.12);">
+          <span style="display:block;font-family: 'Assistant', sans-serif; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #cbd2dc; margin-bottom: 12px;">Size</span>
+          <div id="summarySize" class="summary-items-list">—</div>
+        </div>
+
+        <!-- Candle -->
+        <div style="padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.12);">
+          <span style="display:block;font-family: 'Assistant', sans-serif; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #cbd2dc; margin-bottom: 12px;">Candle</span>
+          <div id="summaryCandle" class="summary-items-list">—</div>
+        </div>
+
+        <!-- Container -->
+        <div style="padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.12);">
+          <span style="display:block;font-family: 'Assistant', sans-serif; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #cbd2dc; margin-bottom: 12px;">Container</span>
+          <div id="summaryContainer" class="summary-items-list">—</div>
+        </div>
+
+        <!-- Accessories -->
+        <div style="padding: 20px 0;">
+          <span style="display:block;font-family: 'Assistant', sans-serif; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #cbd2dc; margin-bottom: 12px;">Accessories</span>
+          <div id="summaryAccessories" class="summary-items-list">—</div>
+        </div>
+
+      </div>
+
+      <!-- Subtotal (before discount) -->
+      <div id="summarySubtotalRow" style="display:none;justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-family: 'Assistant', sans-serif; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: #cbd2dc;">Total</span>
+        <span style="font-family: 'Assistant', sans-serif; font-size: 18px; font-weight: 700; color: #cbd2dc;" id="summarySubtotalVal">EGP 0</span>
+      </div>
+
+      <!-- Discount (shown only when a volume discount is active) -->
+      <div id="summaryDiscountRow" style="display:none;justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-family: 'Assistant', sans-serif; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: #C9A84C;">Discount <span id="summaryDiscountPct"></span></span>
+        <span style="font-family: 'Assistant', sans-serif; font-size: 18px; font-weight: 700; color: #C9A84C;" id="summaryDiscountVal">-EGP 0</span>
+      </div>
+
+      <!-- Total after discount -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px;">
+        <span style="font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #fff; letter-spacing: 3px; text-transform: uppercase;" id="summaryTotalLabel">Total</span>
+        <span style="font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 700; color: var(--gold); letter-spacing: 2px;" id="summaryTotal">EGP 0</span>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 20px; flex-direction: column;">
+        <button id="addCustomGiftBtn" onclick="addCustomGiftToCart()" style="width: 100%; padding: 16px 32px; background: var(--gold); color: #fff; border: none; border-radius: 4px; font-family: 'Assistant', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: 0.2s;">
+          ✓ Add to Cart
+        </button>
+        <button onclick="backToStep4()" style="width: 100%; padding: 16px 32px; background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.35); border-radius: 4px; font-family: 'Assistant', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: 0.2s;">
+          ← Back to Editing
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       WIZARD GOES HERE — TO BE BUILT
+  ══════════════════════════════════════════ -->
+  <div id="wizard">
+    <!-- Coming soon -->
+  </div>
+
+
+  <!-- ── STICKY BOTTOM BAR ── -->
+  <div class="sticky-bar" id="stickyBar">
+
+    <!-- Selected items — one small removable card per item -->
+    <div class="sb-items" id="sbItems"></div>
+
+    <!-- Discount progress — single circle for the next achievable tier -->
+    <div class="sb-discounts">
+      <div class="sb-progress-track">
+        <div class="sb-progress-fill" id="sbProgressFill"></div>
+      </div>
+      <div class="sb-milestone" id="sbNextMilestone">Reach<br>500 EGP,<br>save 5%</div>
+    </div>
+
+    <!-- Right: nav + total -->
+    <div class="sb-right">
+      <div class="sb-nav">
+        <button class="sb-back-btn" onclick="sbGoBack()">&#8249; Back</button>
+        <button class="sb-next-btn" onclick="sbGoNext()">Next &#8250;</button>
+      </div>
+      <div class="sb-total">
+        Total:
+        <span class="sb-total-old" id="sbTotalOld" style="display:none;"></span>
+        <span id="sbTotal">EGP 0</span>
+      </div>
+      <div class="sb-discount-badge" id="sbDiscBadge" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="../js/custom.js" defer></script>
+  <!-- defer here keeps this in the same relative execution order as the
+       now-deferred head scripts it depends on (config/services) — without
+       it, this would run synchronously the instant the parser reaches
+       this line, before those deferred head scripts have executed. -->
+  <!-- Supabase config -->
+  <script type="module" src="../js/pages/custom.js"></script>
+
+</body>
+</html>

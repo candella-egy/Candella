@@ -1076,22 +1076,15 @@ function applyDropImages() {
 })();
 
 // Best sellers (used to position brand-new products by default)
-// Uses get_order_item_stats() — a server-side RPC returning only
-// aggregated item counts (no customer data), so this page never reads
-// the orders table directly.
+// Calculation now comes from OrderService.calculateBestSellerIds
+// (js/services/orderService.js) — that returns a Set; this page always
+// wanted a plain array, so it's converted right back the same way the
+// original filtered array was ordered (Set preserves insertion order, so
+// the result is identical).
 (async function calcEditorBestSellers(){
   try {
-    const { data: stats, error } = await sb.rpc('get_order_item_stats');
-    if (error) throw error;
-    var salesMap = {};
-    (stats || []).forEach(function(row){
-      if (!row.item_key || row.item_key.indexOf('name:') === 0) return;
-      salesMap[row.item_key] = Number(row.total_qty) || 0;
-    });
-    var maxQty = 0;
-    Object.keys(salesMap).forEach(function(id){ if(salesMap[id]>maxQty) maxQty=salesMap[id]; });
-    var ids = Object.keys(salesMap).filter(function(id){ return salesMap[id]===maxQty && maxQty>0; });
-    window.setEditorBestSellers(ids);
+    var idsSet = await window.OrderService.calculateBestSellerIds(sb);
+    window.setEditorBestSellers(Array.from(idsSet));
   } catch(e){ console.warn('Best seller calc failed', e); }
 })();
 
@@ -1217,14 +1210,13 @@ window.deleteReview = async function(id) {
 
 loadReviewsManageList();
 
+// Read+fallback logic now comes from window.fetchMoreSections
+// (js/shared/moreSections.js).
 (async function loadMorePages(){
   try {
-    const { data: row, error } = await sb.from('settings').select('value').eq('key', 'morePages').maybeSingle();
-    if (error) throw error;
-    morePagesData = (row && row.value) ? row.value : {};
-    MORE_SECTIONS = (morePagesData._meta && Array.isArray(morePagesData._meta.sections) && morePagesData._meta.sections.length)
-      ? morePagesData._meta.sections.slice()
-      : DEFAULT_MORE_SECTIONS.slice();
+    var result = await window.fetchMoreSections(sb);
+    morePagesData = result.value;
+    MORE_SECTIONS = result.sections.slice();
     buildMoreTabs();
     if (moreActiveKey) window.openMoreSection(moreActiveKey);
   } catch(e) {

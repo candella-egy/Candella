@@ -66,14 +66,13 @@ window.showSection = function(key) {
   if (content) content.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
-// Load from Supabase
+// Load from Supabase — read+fallback logic now comes from
+// window.fetchMoreSections (js/shared/moreSections.js).
 (async function loadMorePages() {
   try {
-    const { data: row, error } = await sb.from('settings').select('value').eq('key', 'morePages').maybeSingle();
-    if (error) throw error;
-    pagesData = (row && row.value) ? row.value : {};
-    SECTIONS = (pagesData._meta && Array.isArray(pagesData._meta.sections) && pagesData._meta.sections.length)
-      ? pagesData._meta.sections.slice() : DEFAULT_SECTIONS.slice();
+    var result = await window.fetchMoreSections(sb);
+    pagesData = result.value;
+    SECTIONS = result.sections.slice();
   } catch(e) {
     pagesData = {};
     SECTIONS = DEFAULT_SECTIONS.slice();

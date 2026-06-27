@@ -673,14 +673,12 @@ renderMoreSections(DEFAULT_MORE_SECTIONS);
 
 renderMoreSections(DEFAULT_MORE_SECTIONS);
 
+// Read+fallback logic now comes from window.fetchMoreSections
+// (js/shared/moreSections.js).
 (async function loadMoreSections(){
   try {
-    const { data: row, error } = await sb.from('settings').select('value').eq('key', 'morePages').maybeSingle();
-    if (error) throw error;
-    var data = (row && row.value) ? row.value : {};
-    var sections = (data._meta && Array.isArray(data._meta.sections) && data._meta.sections.length)
-      ? data._meta.sections : DEFAULT_MORE_SECTIONS;
-    renderMoreSections(sections);
+    var result = await window.fetchMoreSections(sb);
+    renderMoreSections(result.sections);
   } catch(e) { renderMoreSections(DEFAULT_MORE_SECTIONS); }
 })();
 
@@ -737,21 +735,12 @@ var productsLoaded = (async function loadProductsForHome(){
 })();
 
 // ── Best sellers ── (waits for products + homeImages so applyBestSellerImage has everything it needs)
-// Uses get_order_item_stats() — a server-side RPC that returns only
-// aggregated item counts (no customer names/phones/addresses), so this
-// page never needs to read the orders table directly.
+// Calculation now comes from OrderService.calculateBestSellerIds
+// (js/services/orderService.js) — this page still does its own
+// follow-up (waiting on other loaders, re-rendering) after awaiting it.
 (async function calcBestSellers(){
   try {
-    const { data: stats, error } = await sb.rpc('get_order_item_stats');
-    if (error) throw error;
-    var salesMap = {};
-    (stats || []).forEach(function(row){
-      if (!row.item_key || row.item_key.indexOf('name:') === 0) return; // gift sets have no product id — not eligible here
-      salesMap[row.item_key] = Number(row.total_qty) || 0;
-    });
-    var maxQty = 0;
-    Object.keys(salesMap).forEach(function(id){ if(salesMap[id]>maxQty) maxQty=salesMap[id]; });
-    bestSellerIds = new Set(Object.keys(salesMap).filter(function(id){ return salesMap[id]===maxQty && maxQty>0; }));
+    bestSellerIds = await window.OrderService.calculateBestSellerIds(sb);
     await productsLoaded;
     await homeImagesLoaded;
     if (!carouselOrder) renderCarousel(); // only matters for the fallback (no admin-managed order yet)

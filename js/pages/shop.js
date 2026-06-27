@@ -330,33 +330,21 @@ function buildCategories(cats) {
   } catch(e) { buildCategories(DEFAULT_CATS); }
 })();
 
+// Read+fallback logic now comes from window.fetchMoreSections
+// (js/shared/moreSections.js).
 (async function loadMoreSectionsForShop(){
   try {
-    const { data: row, error } = await sb.from('settings').select('value').eq('key', 'morePages').maybeSingle();
-    if (error) throw error;
-    var data = (row && row.value) ? row.value : {};
-    var sections = (data._meta && Array.isArray(data._meta.sections) && data._meta.sections.length)
-      ? data._meta.sections : DEFAULT_MORE_SECTIONS;
-    renderMoreSectionsShop(sections);
+    var result = await window.fetchMoreSections(sb);
+    renderMoreSectionsShop(result.sections);
   } catch(e) { renderMoreSectionsShop(DEFAULT_MORE_SECTIONS); }
 })();
 
 // ── Best Sellers ──
-// Uses get_order_item_stats() — a server-side RPC returning only
-// aggregated item counts (no customer data), so this page never reads
-// the orders table directly.
+// Calculation now comes from OrderService.calculateBestSellerIds
+// (js/services/orderService.js).
 (async function(){
   try {
-    const { data: stats, error } = await sb.rpc('get_order_item_stats');
-    if (error) throw error;
-    var salesMap = {};
-    (stats || []).forEach(function(row){
-      if (!row.item_key || row.item_key.indexOf('name:') === 0) return;
-      salesMap[row.item_key] = Number(row.total_qty) || 0;
-    });
-    var maxQty = 0;
-    Object.keys(salesMap).forEach(function(id){ if(salesMap[id]>maxQty) maxQty=salesMap[id]; });
-    bestSellerIds = new Set(Object.keys(salesMap).filter(function(id){ return salesMap[id]===maxQty && maxQty>0; }));
+    bestSellerIds = await window.OrderService.calculateBestSellerIds(sb);
   } catch(e){ console.warn('Best sellers failed', e); }
 })();
 

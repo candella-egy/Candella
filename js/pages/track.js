@@ -111,21 +111,12 @@ window.trackOrder = async function() {
       }
 
       nfEl.className = 'not-found';
-      const docData = {
-        shortId:      data.short_id,
-        customer:     data.customer || {},
-        items:        data.items || [],
-        subtotal:     data.subtotal || 0,
-        discount:     data.discount || 0,
-        shipping:     data.shipping || 0,
-        total:        data.total || 0,
-        promoCode:    data.promo_code || '',
-        paymentMethod:data.payment_method || 'cash',
-        status:       data.status || 'new',
-        cancelReason: data.cancel_reason || '',
-        firestoreId:  data.id,
-        createdAt:    data.created_at
-      };
+      // Common field mapping now comes from OrderService.normalizeOrderRow
+      // (js/services/orderService.js) — this page still adds its own
+      // firestoreId on top, exactly as before.
+      const docData = Object.assign(window.OrderService.normalizeOrderRow(data), {
+        firestoreId: data.id
+      });
 
       // لو مش أول مرة → نبعت notification لو الحالة اتغيرت
       if (!firstCall) {

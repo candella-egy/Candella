@@ -351,29 +351,20 @@ async function loadOrders() {
 
     if (error) throw error;
 
+    // Common field mapping now comes from OrderService.normalizeOrderRow
+    // (js/services/orderService.js) — this page still adds its own
+    // _id/statusHistory/shortId+createdAt fallbacks on top, exactly as before.
     allOrders = data.map(function(row) {
-      var customer = row.customer || {};
-      var items = row.items || [];
-      return {
-        _id: row.id,
-        shortId:       row.short_id      || null,
-        customer:      customer,
-        items:         items,
-        subtotal:      row.subtotal      || 0,
-        discount:      row.discount      || 0,
-        shipping:      row.shipping      || 0,
-        total:         row.total         || 0,
-        promoCode:     row.promo_code    || '',
-        paymentMethod: row.payment_method || 'cash',
-        status:        row.status        || 'new',
-        cancelReason:  row.cancel_reason || '',
-        createdAt:     row.created_at    || new Date().toISOString(),
-        // Audit trail of who changed the status and when — super-admin-only
-        // display, populated by dashboard status changes (see updateStatus).
-        // Column may not exist yet on older deployments, hence the
-        // fallback to [].
-        statusHistory: row.status_history || []
-      };
+      var normalized = window.OrderService.normalizeOrderRow(row);
+      normalized._id = row.id;
+      normalized.shortId = row.short_id || null;
+      normalized.createdAt = row.created_at || new Date().toISOString();
+      // Audit trail of who changed the status and when — super-admin-only
+      // display, populated by dashboard status changes (see updateStatus).
+      // Column may not exist yet on older deployments, hence the
+      // fallback to [].
+      normalized.statusHistory = row.status_history || [];
+      return normalized;
     });
   } catch(e) {
     console.error('Supabase error:', e);

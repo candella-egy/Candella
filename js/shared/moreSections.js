@@ -18,3 +18,20 @@ var DEFAULT_MORE_SECTIONS = [
   { key: 'press',         label: 'Press' },
 ];
 window.DEFAULT_MORE_SECTIONS = DEFAULT_MORE_SECTIONS;
+
+// Previously duplicated identically (same query, same _meta.sections
+// fallback check) in js/pages/home.js, js/pages/shop.js,
+// js/pages/homeEditor.js, and js/pages/more.js. Returns both the raw
+// settings value (homeEditor.js/more.js need the full morePages content,
+// not just the section list) and the resolved sections array — un-sliced,
+// so each caller keeps deciding for itself whether to copy the array
+// before mutating it, exactly as each one did before this extraction.
+async function fetchMoreSections(sb) {
+  const { data: row, error } = await sb.from('settings').select('value').eq('key', 'morePages').maybeSingle();
+  if (error) throw error;
+  var value = (row && row.value) ? row.value : {};
+  var sections = (value._meta && Array.isArray(value._meta.sections) && value._meta.sections.length)
+    ? value._meta.sections : window.DEFAULT_MORE_SECTIONS;
+  return { value: value, sections: sections };
+}
+window.fetchMoreSections = fetchMoreSections;

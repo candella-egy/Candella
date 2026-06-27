@@ -1665,8 +1665,7 @@ video.rc-media-item {
   .nav-hamburger { display:block !important; }
   .nav-account-icon { display:none !important; }
   .nav-track-icon { display:block !important; }
-  /* Search box still shows on mobile — but as a centered modal instead
-     of a dropdown anchored under a specific icon. */
+  /* Account/login box stays a centered modal on mobile. */
   .nav-popup {
     position: fixed !important;
     top: 50% !important;
@@ -1676,6 +1675,18 @@ video.rc-media-item {
     margin-top: 0 !important;
     width: 85vw !important;
     max-width: 320px !important;
+  }
+  /* Search box is the exception — anchored under its icon on mobile,
+     same as desktop, instead of the centered-modal treatment above. */
+  #navSearchBox {
+    position: absolute !important;
+    top: 100% !important;
+    left: auto !important;
+    right: 0 !important;
+    transform: none !important;
+    margin-top: 14px !important;
+    width: auto !important;
+    max-width: none !important;
   }
   /* Mobile UX fix (Priority 2): bigger tap area on the nav icons without
      changing their visual glyph size — padding expands the hit box,

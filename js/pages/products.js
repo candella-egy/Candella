@@ -540,13 +540,17 @@ function loadCategories() {
 }
 
 async function loadCategoriesFromSupabase() {
+  // Read+fallback logic now comes from window.fetchCategories
+  // (js/shared/categories.js) — passing this file's own emoji-labeled
+  // DEFAULT_CATS as the override, so the admin dropdown's appearance is
+  // completely unaffected. Reference-equality check below preserves the
+  // exact clone-only-on-fallback behavior this file always had (real
+  // settings data is used as-is; the fallback array is still cloned).
   try {
-    const { data: row, error } = await sb.from('settings').select('value').eq('key', 'categories').maybeSingle();
-    if (!error && row && row.value && row.value.list && row.value.list.length > 0) {
-      _cachedCats = row.value.list;
-    } else {
-      _cachedCats = DEFAULT_CATS.map(function(c){ return Object.assign({}, c); });
-    }
+    var result = await window.fetchCategories(sb, DEFAULT_CATS);
+    _cachedCats = (result === DEFAULT_CATS)
+      ? DEFAULT_CATS.map(function(c){ return Object.assign({}, c); })
+      : result;
   } catch(e) {
     console.warn('Could not load categories from Supabase:', e);
     _cachedCats = DEFAULT_CATS.map(function(c){ return Object.assign({}, c); });

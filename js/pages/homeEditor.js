@@ -1012,13 +1012,13 @@ var cats = [];
 var images = {};
 
 (async function loadCatsAndImages(){
+  // Read+fallback logic now comes from window.fetchCategories
+  // (js/shared/categories.js) — this file is a classic script, so
+  // DEFAULT_CATEGORIES resolves directly without needing a local alias.
   try {
-    const { data: catRow } = await sb.from('settings').select('value').eq('key', 'categories').maybeSingle();
-    cats = (catRow && catRow.value && catRow.value.list && catRow.value.list.length > 0)
-      ? catRow.value.list
-      : [{key:'candles',label:'Scented Candles'},{key:'unscented',label:'Unscented'},{key:'containers',label:'Containers & Accessories'},{key:'offers',label:'Limited Edition'}];
+    cats = await window.fetchCategories(sb);
   } catch(e) {
-    cats = [{key:'candles',label:'Scented Candles'},{key:'unscented',label:'Unscented'},{key:'containers',label:'Containers & Accessories'},{key:'offers',label:'Limited Edition'}];
+    cats = window.DEFAULT_CATEGORIES;
   }
 
   try {

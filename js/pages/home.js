@@ -610,12 +610,11 @@ window.loadDropdownImages = async function() {
 };
 
 // ── Categories live sync ──
-var DEFAULT_CATS = [
-  { key:'candles',    label:'Scented Candles' },
-  { key:'unscented',  label:'Unscented' },
-  { key:'containers', label:'Containers & Accessories' },
-  { key:'offers',     label:'Limited Edition' }
-];
+// DEFAULT_CATS data now lives in js/shared/categories.js (loaded before
+// this module) as DEFAULT_CATEGORIES — aliased locally under this file's
+// existing name since it's a module and bare identifiers don't fall back
+// to window.X automatically.
+var DEFAULT_CATS = window.DEFAULT_CATEGORIES;
 
 function buildCategories(cats) {
   // Side menu
@@ -682,12 +681,11 @@ renderMoreSections(DEFAULT_MORE_SECTIONS);
   } catch(e) { renderMoreSections(DEFAULT_MORE_SECTIONS); }
 })();
 
+// Read+fallback logic now comes from window.fetchCategories
+// (js/shared/categories.js).
 (async function loadCategoriesForHome(){
   try {
-    const { data: row, error } = await sb.from('settings').select('value').eq('key', 'categories').maybeSingle();
-    if (error) throw error;
-    var cats = (row && row.value && row.value.list && row.value.list.length > 0)
-      ? row.value.list : DEFAULT_CATS;
+    var cats = await window.fetchCategories(sb);
     buildCategories(cats);
   } catch(e) { buildCategories(DEFAULT_CATS); }
 })();

@@ -37,8 +37,30 @@
     return result;
   }
 
+  // Previously duplicated identically in js/pages/{checkout,dashboard,
+  // home,shop,track}.js's giftImageStack() — the image-gathering and
+  // component-derivation logic was byte-identical across all 5; only
+  // each page's size default, empty-state placeholder, and render
+  // template differ (those stay at each call site, untouched). Pure
+  // data, no DOM, no HTML — exactly the shape each page's
+  // giftImageStack() already builds these intermediate values into.
+  function buildGiftStackData(item, size) {
+    var imgs = [];
+    if (item.giftCandleImg) imgs.push(item.giftCandleImg);
+    if (item.giftContainerImgs) imgs = imgs.concat(item.giftContainerImgs);
+    if (item.giftAccessoryImgs) imgs = imgs.concat(item.giftAccessoryImgs);
+    if (!imgs.length && item.img) imgs.push(item.img);
+    var components = (item.giftComponents && item.giftComponents.length)
+      ? item.giftComponents
+      : imgs.map(function(url){ return { name: '', price: null, img: url }; });
+    var shown = imgs.slice(0, 4);
+    var stackWidth = size + (shown.length - 1) * Math.round(size * 0.2);
+    return { imgs: imgs, components: components, shown: shown, stackWidth: stackWidth };
+  }
+
   global.CustomGiftService = {
     DISC_TIERS: DISC_TIERS,
-    calculateCustomGiftTotals: calculateCustomGiftTotals
+    calculateCustomGiftTotals: calculateCustomGiftTotals,
+    buildGiftStackData: buildGiftStackData
   };
 })(window);

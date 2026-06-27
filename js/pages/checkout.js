@@ -142,23 +142,16 @@ window.applyPromo = applyPromo;
 // before these per-component fields existed. ──
 function giftImageStack(item, size) {
   size = size || 52;
-  var imgs = [];
-  if (item.giftCandleImg) imgs.push(item.giftCandleImg);
-  if (item.giftContainerImgs) imgs = imgs.concat(item.giftContainerImgs);
-  if (item.giftAccessoryImgs) imgs = imgs.concat(item.giftAccessoryImgs);
-  if (!imgs.length && item.img) imgs.push(item.img);
-  if (!imgs.length) {
+  // Image-gathering/component-derivation logic now comes from
+  // CustomGiftService.buildGiftStackData (js/services/customGiftService.js).
+  var data = window.CustomGiftService.buildGiftStackData(item, size);
+  if (!data.imgs.length) {
     return '<div style="width:' + size + 'px;height:' + size + 'px;background:#f0ede8;border-radius:2px;flex-shrink:0;"></div>';
   }
-  var components = (item.giftComponents && item.giftComponents.length)
-    ? item.giftComponents
-    : imgs.map(function(url){ return { name: '', price: null, img: url }; });
-  var shown = imgs.slice(0, 4);
-  var stackWidth = size + (shown.length - 1) * Math.round(size * 0.2);
-  var enc = encodeURIComponent(JSON.stringify(components));
-  return '<div onclick="event.stopPropagation();openGiftGallery(\'' + enc + '\')" style="cursor:zoom-in;position:relative;width:' + stackWidth + 'px;height:' + size + 'px;flex-shrink:0;">'
-    + shown.map(function(url, i) {
-        var rot = (i - (shown.length - 1) / 2) * 8;
+  var enc = encodeURIComponent(JSON.stringify(data.components));
+  return '<div onclick="event.stopPropagation();openGiftGallery(\'' + enc + '\')" style="cursor:zoom-in;position:relative;width:' + data.stackWidth + 'px;height:' + size + 'px;flex-shrink:0;">'
+    + data.shown.map(function(url, i) {
+        var rot = (i - (data.shown.length - 1) / 2) * 8;
         return '<img src="' + url + '" loading="lazy" style="position:absolute;left:' + (i * Math.round(size * 0.2)) + 'px;top:0;width:' + size + 'px;height:' + size + 'px;object-fit:cover;border-radius:6px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.18);transform:rotate(' + rot + 'deg);z-index:' + i + ';" />';
       }).join('')
     + '</div>';

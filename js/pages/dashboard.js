@@ -837,20 +837,14 @@ window.submitPwModal = async function() {
 // older orders saved before these per-component fields existed. ──
 function giftImageStack(item, size) {
   size = size || 56;
-  var imgs = [];
-  if (item.giftCandleImg) imgs.push(item.giftCandleImg);
-  if (item.giftContainerImgs) imgs = imgs.concat(item.giftContainerImgs);
-  if (item.giftAccessoryImgs) imgs = imgs.concat(item.giftAccessoryImgs);
-  if (!imgs.length && item.img) imgs.push(item.img);
-  if (!imgs.length) {
+  // Image-gathering/component-derivation logic now comes from
+  // CustomGiftService.buildGiftStackData (js/services/customGiftService.js).
+  var data = window.CustomGiftService.buildGiftStackData(item, size);
+  if (!data.imgs.length) {
     return '<div style="width:' + size + 'px;height:' + size + 'px;background:#ede8df;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">🎁</div>';
   }
-  var components = (item.giftComponents && item.giftComponents.length)
-    ? item.giftComponents
-    : imgs.map(function(url){ return { name: '', price: null, img: url }; });
-  var shown = imgs.slice(0, 4);
-  var stackWidth = size + (shown.length - 1) * Math.round(size * 0.2);
-  var enc = encodeURIComponent(JSON.stringify(components));
+  var shown = data.shown, stackWidth = data.stackWidth;
+  var enc = encodeURIComponent(JSON.stringify(data.components));
   // openGiftGallery now comes from js/shared/giftGallery.js (loaded
   // before this file) — explicit options here reproduce this page's two
   // deliberate differences (higher z-index so the gallery sits above the

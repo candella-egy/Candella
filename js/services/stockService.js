@@ -414,4 +414,15 @@
     adjustProductStock: adjustProductStock
   };
 
+  // Page-convenience wrapper — previously duplicated identically in
+  // js/pages/checkout.js and js/pages/track.js. Both pages already define
+  // window._sb (their own Supabase client) before this would ever be
+  // called, so reading it here at call-time changes nothing about how
+  // either page invokes this.
+  global.adjustCustomGiftStock = async function (giftItem, direction) {
+    var result = await global.CandellaStock.adjustCustomGiftStock(global._sb, giftItem, direction);
+    if (result && result.error) console.warn('adjustCustomGiftStock error:', result.error);
+    return result;
+  };
+
 })(window);

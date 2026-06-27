@@ -8,18 +8,10 @@
 // ════════════════════════════════════════════
 const sb = window.createSupabaseClient();
 
-const DEFAULT_SECTIONS = [
-  { key: 'why_candella',        label: 'Why Candella?' },
-  { key: 'about_scents',        label: 'About Candella Scents' },
-  { key: 'blog',                label: 'Blog' },
-  { key: 'wholesale',           label: 'Wholesale' },
-  { key: 'how_much',            label: 'How Much Candella Do I Need?' },
-  { key: 'about_us',            label: 'About Us' },
-  { key: 'plant_based',         label: 'Plant-Based Candles' },
-  { key: 'refillable',          label: 'Refillable, Reusable Candles' },
-  { key: 'instructions',        label: 'Instructions' },
-  { key: 'press',               label: 'Press' },
-];
+// Same data as js/shared/moreSections.js (loaded before this module) —
+// aliased under this file's existing local name since it's a module and
+// bare identifiers don't fall back to window.X automatically.
+const DEFAULT_SECTIONS = window.DEFAULT_MORE_SECTIONS;
 var SECTIONS = DEFAULT_SECTIONS.slice();
 
 var pagesData = {}; // key → { img, text }

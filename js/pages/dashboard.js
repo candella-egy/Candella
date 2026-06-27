@@ -12,16 +12,9 @@
 // loaded by dashboard.html before this file. No stock/cost logic is
 // duplicated here.
 
-// Customer-submitted free-text fields (name/address/notes from the
-// checkout form) get rendered into this page's innerHTML below. Without
-// escaping, an order containing e.g. <img src=x onerror=...> in its name
-// field would execute in the admin's browser the moment this dashboard is
-// opened — escape before display, every time.
-function escapeHtml(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
+// escapeHtml() now comes from js/shared/domUtils.js (loaded before this
+// file) — used below wherever customer-submitted free text is rendered
+// into innerHTML.
 
 // ════════════════════════════════════════════
 // SUPABASE SETUP
@@ -867,33 +860,18 @@ function giftImageStack(item, size) {
   var shown = imgs.slice(0, 4);
   var stackWidth = size + (shown.length - 1) * Math.round(size * 0.2);
   var enc = encodeURIComponent(JSON.stringify(components));
-  return '<div onclick="event.stopPropagation();openGiftGallery(\'' + enc + '\')" style="cursor:zoom-in;position:relative;width:' + stackWidth + 'px;height:' + size + 'px;flex-shrink:0;">'
+  // openGiftGallery now comes from js/shared/giftGallery.js (loaded
+  // before this file) — explicit options here reproduce this page's two
+  // deliberate differences (higher z-index so the gallery sits above the
+  // dashboard's other modals, and no loading="lazy" on the thumbnails)
+  // exactly as before.
+  return '<div onclick="event.stopPropagation();openGiftGallery(\'' + enc + '\',{zIndex:99999,lazy:false})" style="cursor:zoom-in;position:relative;width:' + stackWidth + 'px;height:' + size + 'px;flex-shrink:0;">'
     + shown.map(function(url, i) {
         var rot = (i - (shown.length - 1) / 2) * 8;
         return '<img src="' + url + '" style="position:absolute;left:' + (i * Math.round(size * 0.2)) + 'px;top:0;width:' + size + 'px;height:' + size + 'px;object-fit:cover;border-radius:8px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.18);transform:rotate(' + rot + 'deg);z-index:' + i + ';" />';
       }).join('')
     + '</div>';
 }
-// Enlarged gallery — each selected component shown as its own card
-// (image + name + price), stacked vertically, instead of a flat row of
-// unlabeled images.
-window.openGiftGallery = function(enc) {
-  var components = JSON.parse(decodeURIComponent(enc));
-  var overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;overflow-y:auto;';
-  overlay.onclick = function(e){ if (e.target === overlay) overlay.remove(); };
-  var cardsHtml = components.map(function(comp){
-    return '<div style="display:flex;align-items:center;gap:16px;background:#fff;border-radius:10px;padding:14px 20px;width:100%;max-width:440px;box-shadow:0 4px 16px rgba(0,0,0,0.25);">'
-      + (comp.img ? '<img src="' + comp.img + '" style="width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0;" />' : '<div style="width:64px;height:64px;background:#f0ede8;border-radius:8px;flex-shrink:0;"></div>')
-      + '<div style="flex:1;min-width:140px;font-family:Montserrat,sans-serif;font-size:13px;font-weight:600;color:#1a1a2e;">' + (comp.name || '') + '</div>'
-      + (comp.price != null ? '<div style="font-family:\'Cormorant Garamond\',serif;font-size:15px;font-weight:700;color:#c9a24d;white-space:nowrap;">EGP ' + comp.price + '</div>' : '')
-      + '</div>';
-  }).join('');
-  overlay.innerHTML =
-    '<button onclick="this.parentElement.remove()" style="position:fixed;top:18px;right:18px;width:38px;height:38px;border-radius:50%;background:#fff;border:none;font-size:18px;color:#333;cursor:pointer;z-index:1;">&#10005;</button>' +
-    '<div style="display:flex;flex-direction:column;gap:12px;align-items:center;max-width:90vw;">' + cardsHtml + '</div>';
-  document.body.appendChild(overlay);
-};
 
 // ===== VIEW ORDER MODAL =====
 window.viewOrder = function(id) {

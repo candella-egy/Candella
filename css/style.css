@@ -301,6 +301,11 @@ body {
 .tab:hover { border-color: var(--navy); color: var(--navy); }
 .tab.active { background: var(--navy); color: white; border-color: var(--navy); }
 
+/* Category-owned Product Types sub-tabs — extends the existing .tab look
+   with a smaller size, shown only when the active Shop category owns types */
+.sub-tabs { margin-top: -28px; margin-bottom: 36px; }
+.tab.sub { padding: 5px 14px; font-size: 9px; }
+
 .product-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -343,12 +348,20 @@ body {
 }
 .product-card:hover .product-img-wrap img { transform: scale(1.05); }
 
-/* Sold out */
+/* Sold out — centered stamp style, sits over the image regardless of
+   whether a Best Seller corner badge is also present */
 .sold-out-badge {
-  position: absolute; top: 12px; left: 12px; z-index: 2;
-  background: #111; color: #fff; font-size: 11px; font-weight: 700;
-  letter-spacing: 1.5px; text-transform: uppercase; padding: 6px 12px;
-  border-radius: 999px;
+  position: absolute; top: 50%; left: 50%; z-index: 3;
+  transform: translate(-50%, -50%) rotate(-10deg);
+  background: rgba(17,17,17,0.55);
+  border: 2px solid rgba(255,255,255,0.75);
+  color: #fff; font-size: 20px; font-weight: 800;
+  letter-spacing: 3px; text-transform: uppercase; text-align: center;
+  white-space: nowrap; padding: 8px 26px;
+  pointer-events: none;
+}
+@media (max-width: 480px) {
+  .sold-out-badge { font-size: 15px; letter-spacing: 2px; padding: 6px 18px; border-width: 1.5px; }
 }
 .product-card.sold-out .product-img-wrap img { opacity: 0.5; filter: grayscale(40%); }
 .product-card.sold-out .add-btn,
@@ -2011,6 +2024,8 @@ body.products-scope { font-family: 'Montserrat', sans-serif; background: #ede8df
 .products-scope .cat-add-btn {background:var(--navy);color:#fff;border:none;border-radius:8px;padding:9px 16px;cursor:pointer;font-size:13px;font-weight:600;}
 .products-scope .cat-save-btn {width:100%;background:var(--gold);color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px;}
 .products-scope .cat-close-btn {width:100%;background:#f5f0e8;color:#555;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;}
+.products-scope .cat-types-toggle {background:none;border:none;color:#888;font-size:11px;cursor:pointer;padding:0 0 8px;}
+.products-scope .cat-types-section {margin:0 0 14px 18px;padding-left:10px;border-left:2px solid #eee;}
 
 /* =========================
    MISSING / GLOBAL UTILITY CLASSES

@@ -163,7 +163,8 @@ window.saveProduct = async function() {
 
   var data = {
     name: name, description: desc, category: category, img: img,
-    cost_price: cost, price: price, stock: stock
+    cost_price: cost, price: price, stock: stock,
+    product_type: categoryHasTypes(category) ? (document.getElementById('f_productType').value || null) : null
   };
 
   var btn = document.getElementById('saveBtn');
@@ -171,14 +172,14 @@ window.saveProduct = async function() {
 
   try {
     if (editingId) {
-      const { error } = await sb.from('products').update(data).eq('id', editingId);
+      const { error } = await window.ProductsApi.updateProduct(sb, editingId, data);
       if (error) throw error;
       msg.className = 'form-msg ok';
       msg.textContent = '✅ Product updated successfully.';
     } else {
       data.id = crypto.randomUUID();
       data.order = Date.now();
-      const { error } = await sb.from('products').insert(data);
+      const { error } = await window.ProductsApi.createProduct(sb, data);
       if (error) throw error;
       msg.className = 'form-msg ok';
       msg.textContent = '✅ Product added — it’s now live on the website.';
@@ -194,6 +195,34 @@ window.saveProduct = async function() {
   }
 };
 
+// Looks up the currently selected category's `types` (loaded via the
+// existing loadCategories() cache — no second cache introduced) and
+// returns true only if that category owns at least one type. Generic
+// by design: any category with a non-empty `types` array qualifies,
+// not a hardcoded 'containers' check.
+function categoryHasTypes(categoryKey) {
+  var cat = loadCategories().find(function(c){ return c.key === categoryKey; });
+  return !!(cat && cat.types && cat.types.length);
+}
+
+window.toggleProductTypeField = function() {
+  var cat = document.getElementById('f_category').value;
+  var selectedCat = loadCategories().find(function(c){ return c.key === cat; });
+  var types = (selectedCat && selectedCat.types) || [];
+  var row = document.getElementById('productTypeRow');
+  var sel = document.getElementById('f_productType');
+  if (types.length > 0) {
+    var sorted = types.slice().sort(function(a,b){ return a.order - b.order; });
+    sel.innerHTML = '<option value="">None</option>' + sorted.map(function(t){
+      return '<option value="' + t.key + '">' + t.label + '</option>';
+    }).join('');
+    row.style.display = 'flex';
+  } else {
+    sel.innerHTML = '';
+    row.style.display = 'none';
+  }
+};
+
 window.cancelEdit = function() {
   editingId = null;
   document.getElementById('f_name').value = '';
@@ -206,6 +235,8 @@ window.cancelEdit = function() {
   document.getElementById('formTitle').textContent = '➕ Add New Product';
   document.getElementById('saveBtn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Add Product';
   document.getElementById('cancelEditBtn').style.display = 'none';
+  toggleProductTypeField();
+  document.getElementById('f_productType').value = '';
   updatePreview();
 };
 
@@ -224,6 +255,8 @@ window.editProduct = function(id) {
   document.getElementById('formTitle').textContent = '✏️ Edit Product';
   document.getElementById('saveBtn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Product';
   document.getElementById('cancelEditBtn').style.display = 'inline-block';
+  toggleProductTypeField();
+  document.getElementById('f_productType').value = p.productType || '';
   updatePreview();
   document.querySelector('.form-card').scrollIntoView({ behavior: 'smooth' });
 };
@@ -234,7 +267,7 @@ window.deleteProduct = async function(id) {
   if (!p) return;
   if (!confirm('Delete "' + p.name + '"? This cannot be undone.')) return;
   try {
-    const { error } = await sb.from('products').delete().eq('id', id);
+    const { error } = await window.ProductsApi.deleteProduct(sb, id);
     if (error) throw error;
     if (editingId === id) cancelEdit();
     loadProducts();
@@ -248,7 +281,7 @@ async function loadProducts() {
   var grid = document.getElementById('productsGrid');
   grid.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>';
   try {
-    const { data, error } = await sb.from('products').select('*');
+    const { data, error } = await window.ProductsApi.getAdminProducts(sb);
     if (error) throw error;
     allProducts = (data || []).map(function(row){
       return {
@@ -260,7 +293,8 @@ async function loadProducts() {
         costPrice: row.cost_price || 0,
         price: row.price || 0,
         stock: (typeof row.stock === 'number') ? row.stock : 0,
-        order: (typeof row.order === 'number') ? row.order : 0
+        order: (typeof row.order === 'number') ? row.order : 0,
+        productType: row.product_type || ''
       };
     });
     allProducts.sort(function(a,b){ return b.order - a.order; });
@@ -322,7 +356,7 @@ function renderProducts() {
 // directly onto it, then upserts giftSet back. itemType: 'candle'|'container'|'acc'.
 async function saveItemCostStock(itemType, itemId, cost, stock) {
   try {
-    const { data: giftRow, error } = await sb.from('settings').select('value').eq('key', 'giftSet').maybeSingle();
+    const { data: giftRow, error } = await window.CustomBuilderApi.getGiftSetData(sb);
     if (error) throw error;
     var giftData = giftRow.value || {};
 
@@ -346,7 +380,7 @@ async function saveItemCostStock(itemType, itemId, cost, stock) {
 
     if (!found) { alert('⚠️ Item not found by id — it may need the Home Editor migration run first.'); return; }
 
-    const { error: upsertError } = await sb.from('settings').upsert({ key: 'giftSet', value: giftData });
+    const { error: upsertError } = await window.CustomBuilderApi.saveGiftSetData(sb, giftData);
     if (upsertError) throw upsertError;
   } catch(e) { alert('Error saving: ' + e.message); }
 }
@@ -447,7 +481,7 @@ async function loadAndRenderCustomItems() {
   var section = document.getElementById('customSection');
 
   try {
-    const { data: row, error } = await sb.from('settings').select('value').eq('key', 'giftSet').maybeSingle();
+    const { data: row, error } = await window.CustomBuilderApi.getGiftSetData(sb);
     if (error || !row) return;
     var d = row.value || {};
 
@@ -561,7 +595,7 @@ async function loadCategoriesFromSupabase() {
 async function saveCategoriesToStorage(cats) {
   _cachedCats = cats;
   try {
-    const { error } = await sb.from('settings').upsert({ key: 'categories', value: { list: cats } });
+    const { error } = await window.ProductsApi.saveCategoriesList(sb, cats);
     if (error) throw error;
   } catch(e) {
     console.warn('Could not save categories to Supabase:', e);
@@ -578,19 +612,106 @@ function buildCategorySelect() {
   if (cur && sel.querySelector('option[value="'+cur+'"]')) sel.value = cur;
 }
 
+// Shared row template for the Manage Categories dialog — used by both
+// category rows and type rows below. Every part that previously differed
+// between the two inline templates (wrapper id, wrapper class, input id,
+// value, delete onclick) is an explicit parameter, so the generated HTML
+// is byte-for-byte identical to the two original inline templates.
+function renderEditableRow(rowClass, rowId, inputId, value, deleteOnclick) {
+  return '<div class="' + rowClass + '"' + (rowId ? ' id="' + rowId + '"' : '') + '>'
+    + '<input type="text" value="' + value + '" id="' + inputId + '" />'
+    + '<button class="cat-del" onclick="' + deleteOnclick + '">🗑</button>'
+    + '</div>';
+}
+
+// Renders the optional, collapsible "Types" sub-list for one category
+// row inside the Manage Categories dialog. Reuses the dialog's existing
+// .cat-row/.cat-del/.cat-add-row/.cat-add-btn classes (no new CSS rules
+// beyond the small .cat-types-section/.cat-types-toggle wrapper added to
+// css/style.css) — extends the existing dialog, does not redesign it.
+function renderCatTypesSection(cat, catIdx) {
+  var types = (cat.types || []).slice().sort(function(a,b){ return a.order - b.order; });
+  var rowsHtml = types.map(function(t){
+    return renderEditableRow(
+      'cat-row cat-type-row', null,
+      'cattypelabel_' + catIdx + '_' + t.key, t.label,
+      "deleteCategoryType(" + catIdx + ",'" + t.key + "')"
+    );
+  }).join('');
+  return '<button type="button" class="cat-types-toggle" onclick="toggleCatTypes(' + catIdx + ')">▾ Types</button>'
+    + '<div class="cat-types-section" id="cattypes_' + catIdx + '" style="display:none;">'
+      + '<div id="cattypeslist_' + catIdx + '">' + rowsHtml + '</div>'
+      + '<div class="cat-add-row">'
+        + '<input type="text" id="newCatType_' + catIdx + '" placeholder="New type name..." />'
+        + '<button class="cat-add-btn" onclick="addCategoryType(' + catIdx + ')">+ Add Type</button>'
+      + '</div>'
+    + '</div>';
+}
+
 window.openCatManager = function() {
   if (isRestrictedAdmin) return;
   var cats = loadCategories();
   var list = document.getElementById('catList');
   list.innerHTML = cats.map(function(c, i){
-    return '<div class="cat-row" id="catrow_'+i+'">'
-      + '<input type="text" value="'+c.label+'" id="catlabel_'+i+'" />'
-      + '<button class="cat-del" onclick="deleteCategory('+i+')">🗑</button>'
-      + '</div>';
+    return renderEditableRow('cat-row', 'catrow_' + i, 'catlabel_' + i, c.label, 'deleteCategory(' + i + ')')
+      + renderCatTypesSection(c, i);
   }).join('');
   document.getElementById('newCatEmoji').value = '';
   document.getElementById('newCatName').value = '';
   document.getElementById('catModalOverlay').style.display = 'flex';
+};
+
+window.toggleCatTypes = function(catIdx) {
+  var el = document.getElementById('cattypes_' + catIdx);
+  if (!el) return;
+  el.style.display = (el.style.display === 'none' || !el.style.display) ? 'block' : 'none';
+};
+
+window.addCategoryType = async function(catIdx) {
+  if (isRestrictedAdmin) return;
+  var input = document.getElementById('newCatType_' + catIdx);
+  var name = input.value.trim();
+  if (!name) { alert('Please enter a type name.'); return; }
+  var cats = loadCategories();
+  var cat = cats[catIdx];
+  if (!cat) return;
+  var key = name.toLowerCase().replace(/[^a-z0-9]/g,'_');
+  cat.types = cat.types || [];
+  // Duplicate-key protection scoped ONLY inside this category — the
+  // same key may exist under a different category without conflict.
+  var i = 2;
+  var origKey = key;
+  while (cat.types.some(function(t){ return t.key === key; })) { key = origKey + '_' + i++; }
+  var maxOrder = cat.types.reduce(function(m,t){ return Math.max(m, t.order || 0); }, 0);
+  cat.types.push({ key: key, label: name, order: maxOrder + 1 });
+  saveCategoriesToStorage(cats);
+  openCatManager();
+  document.getElementById('cattypes_' + catIdx).style.display = 'block';
+  buildCategorySelect();
+};
+
+window.deleteCategoryType = async function(catIdx, typeKey) {
+  if (isRestrictedAdmin) return;
+  var cats = loadCategories();
+  var cat = cats[catIdx];
+  if (!cat || !cat.types) return;
+  var type = cat.types.find(function(t){ return t.key === typeKey; });
+  if (!type) return;
+  // Usage count from the already-loaded admin product list — no new
+  // Supabase query. Deletion never reads/writes the products table:
+  // existing products keep their stored product_type key untouched.
+  var usageCount = allProducts.filter(function(p){
+    return p.category === cat.key && p.productType === typeKey;
+  }).length;
+  var msg = usageCount > 0
+    ? 'Delete "' + type.label + '"? ' + usageCount + ' product(s) currently use this type — they will keep their saved value, but it will no longer appear as a selectable option.'
+    : 'Delete "' + type.label + '"?';
+  if (!confirm(msg)) return;
+  cat.types = cat.types.filter(function(t){ return t.key !== typeKey; });
+  saveCategoriesToStorage(cats);
+  openCatManager();
+  document.getElementById('cattypes_' + catIdx).style.display = 'block';
+  buildCategorySelect();
 };
 
 window.closeCatManager = function() {
@@ -631,9 +752,18 @@ window.saveCategories = async function() {
   cats.forEach(function(c, i){
     var inp = document.getElementById('catlabel_'+i);
     if (inp) c.label = inp.value.trim() || c.label;
+    // Type keys are immutable — only the label is ever editable here,
+    // exactly like categories themselves above.
+    if (c.types && c.types.length) {
+      c.types.forEach(function(t){
+        var tInp = document.getElementById('cattypelabel_'+i+'_'+t.key);
+        if (tInp) t.label = tInp.value.trim() || t.label;
+      });
+    }
   });
   saveCategoriesToStorage(cats);
   buildCategorySelect();
+  toggleProductTypeField();
   closeCatManager();
 };
 

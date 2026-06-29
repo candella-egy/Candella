@@ -843,7 +843,7 @@ window.inspectGiftSetIds = async function() {
   box.style.display = 'block';
   box.textContent = 'Loading…';
   try {
-    const { data: giftRow, error } = await sb.from('settings').select('value').eq('key', 'giftSet').maybeSingle();
+    const { data: giftRow, error } = await window.CustomBuilderApi.getGiftSetData(sb);
     if (error) throw error;
     var giftData = (giftRow && giftRow.value) || {};
 
@@ -881,7 +881,7 @@ window.runCatalogIntegrityCheck = async function() {
   box.style.display = 'block';
   box.textContent = 'Checking…';
   try {
-    const { data: giftRow, error } = await sb.from('settings').select('value').eq('key', 'giftSet').maybeSingle();
+    const { data: giftRow, error } = await window.CustomBuilderApi.getGiftSetData(sb);
     if (error) throw error;
     var giftData = (giftRow && giftRow.value) || {};
 
@@ -951,58 +951,48 @@ initAccess();
 
 /* ── Expose Supabase savers ── */
 
-// Reads the current jsonb value for a settings key, shallow-merges in `patch`,
-// and writes it back. Mirrors Firestore's setDoc(..., {merge:true}) behaviour.
-async function mergeSettingsKey(key, patch) {
-  const { data: row } = await sb.from('settings').select('value').eq('key', key).maybeSingle();
-  const current = (row && row.value) ? row.value : {};
-  const updated = Object.assign({}, current, patch);
-  const { error } = await sb.from('settings').upsert({ key: key, value: updated });
-  if (error) throw error;
-}
-
 window.saveImageToFirebase = async function(key, url) {
   var upd = {}; upd[key] = url;
-  await mergeSettingsKey('homeImages', upd);
+  await window.HomeEditorApi.mergeHomeImagesPatch(sb, upd);
 };
 
 window._fbSaveCarouselOrder = async function(order, imagesHidden) {
   // Not a merge in the original (merge:false) — fully replaces the document.
-  const { error } = await sb.from('settings').upsert({ key: 'carouselOrder', value: { order: order, imagesHidden: !!imagesHidden } });
+  const { error } = await window.HomeEditorApi.saveCarouselOrder(sb, order, imagesHidden);
   if (error) throw error;
 };
 
 window._fbSaveGiftHero = async function(url) {
-  await mergeSettingsKey('giftSet', { heroImg: url });
+  await window.CustomBuilderApi.mergeGiftSetPatch(sb, { heroImg: url });
 };
 
 window._fbSaveSizes = async function(data) {
-  await mergeSettingsKey('giftSet', { sizes: data });
+  await window.CustomBuilderApi.mergeGiftSetPatch(sb, { sizes: data });
 };
 
 window._fbSaveCandles = async function(data) {
-  await mergeSettingsKey('giftSet', { candlesBySize: data });
+  await window.CustomBuilderApi.mergeGiftSetPatch(sb, { candlesBySize: data });
 };
 
 window._fbSaveAccs = async function(data) {
-  await mergeSettingsKey('giftSet', { accessories: data });
+  await window.CustomBuilderApi.mergeGiftSetPatch(sb, { accessories: data });
 };
 
 window._fbSaveContainers = async function(data) {
-  await mergeSettingsKey('giftSet', { containers: data });
+  await window.CustomBuilderApi.mergeGiftSetPatch(sb, { containers: data });
 };
 
 window._fbSaveContainerTypeImages = async function(images) {
-  await mergeSettingsKey('giftSet', { containerTypeImages: images });
+  await window.CustomBuilderApi.mergeGiftSetPatch(sb, { containerTypeImages: images });
 };
 
 window._fbSaveMorePage = async function(key, pageData) {
   var upd = {}; upd[key] = pageData;
-  await mergeSettingsKey('morePages', upd);
+  await window.MorePagesApi.mergeMorePagesPatch(sb, upd);
 };
 
 window._fbSaveMoreSections = async function(sections) {
-  await mergeSettingsKey('morePages', { _meta: { sections: sections } });
+  await window.MorePagesApi.mergeMorePagesPatch(sb, { _meta: { sections: sections } });
 };
 
 /* ── Load everything live ── */
@@ -1022,7 +1012,7 @@ var images = {};
   }
 
   try {
-    const { data: imgRow } = await sb.from('settings').select('value').eq('key', 'homeImages').maybeSingle();
+    const { data: imgRow } = await window.HomeEditorApi.getHomeImages(sb);
     images = (imgRow && imgRow.value) ? imgRow.value : {};
   } catch(e) { images = {}; }
 
@@ -1065,7 +1055,7 @@ function applyDropImages() {
 // Products (feed the carousel order's product entries)
 (async function loadEditorProducts(){
   try {
-    const { data, error } = await sb.from('products').select('*');
+    const { data, error } = await window.ProductsApi.getCarouselProducts(sb);
     if (error) throw error;
     var arr = (data || []).map(function(row){
       return { id: row.id, name: row.name||'', price: row.price||0, img: row.img||'', stock: typeof row.stock==='number'?row.stock:0, order: typeof row.order==='number'?row.order:0 };
@@ -1089,7 +1079,7 @@ function applyDropImages() {
 })();
 
 // One-time read of the legacy custom-slides doc, used only to migrate old data into the new combined order
-sb.from('settings').select('value').eq('key', 'carouselSlides').maybeSingle().then(function(res){
+window.HomeEditorApi.getLegacyCarouselSlides(sb).then(function(res){
   var urls = (res.data && res.data.value && res.data.value.slides) ? res.data.value.slides : [];
   window.setLegacyCarouselSlides(urls);
 }).catch(function(){ window.setLegacyCarouselSlides([]); });
@@ -1097,7 +1087,7 @@ sb.from('settings').select('value').eq('key', 'carouselSlides').maybeSingle().th
 // Carousel order (combined products + custom images, fully admin-managed)
 (async function loadCarouselOrder(){
   try {
-    const { data: row } = await sb.from('settings').select('value').eq('key', 'carouselOrder').maybeSingle();
+    const { data: row } = await window.HomeEditorApi.getCarouselOrder(sb);
     var order = (row && row.value && Array.isArray(row.value.order)) ? row.value.order : null;
     carouselImagesHidden = !!(row && row.value && row.value.imagesHidden);
     window.setCarouselOrderFromFirestore(order);
@@ -1107,7 +1097,7 @@ sb.from('settings').select('value').eq('key', 'carouselSlides').maybeSingle().th
 // Gift Set settings
 (async function loadGiftSet(){
   try {
-    const { data: row } = await sb.from('settings').select('value').eq('key', 'giftSet').maybeSingle();
+    const { data: row } = await window.CustomBuilderApi.getGiftSetData(sb);
     var d = (row && row.value) ? row.value : {};
 
     // Hero
@@ -1186,7 +1176,7 @@ function renderReviewsManageList(reviews) {
 
 async function loadReviewsManageList() {
   try {
-    const { data, error } = await sb.from('reviews').select('*').order('id', { ascending: false });
+    const { data, error } = await window.ReviewsApi.getAllReviewsForModeration(sb);
     if (error) throw error;
     renderReviewsManageList(data || []);
   } catch(e) {
@@ -1198,7 +1188,7 @@ async function loadReviewsManageList() {
 window.deleteReview = async function(id) {
   if (!confirm('Delete this review permanently? It will disappear from the home page for everyone.')) return;
   try {
-    const { error } = await sb.from('reviews').delete().eq('id', id);
+    const { error } = await window.ReviewsApi.deleteReview(sb, id);
     if (error) throw error;
     showToast('Review deleted');
     loadReviewsManageList();

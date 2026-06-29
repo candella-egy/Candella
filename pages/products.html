@@ -12,6 +12,8 @@
   <script src="../js/config/supabase.js"></script>
   <script src="../js/auth/adminAuth.js"></script>
   <script src="../js/shared/categories.js"></script>
+  <script src="../js/api/productsApi.js"></script>
+  <script src="../js/api/customBuilderApi.js"></script>
 </head>
 <body class="products-scope">
 
@@ -70,9 +72,13 @@
           <div class="form-group">
             <label>Category *</label>
             <div style="display:flex;gap:8px;align-items:center;">
-              <select class="form-select" id="f_category" onchange="updatePreview()" style="flex:1;"></select>
+              <select class="form-select" id="f_category" onchange="updatePreview();toggleProductTypeField();" style="flex:1;"></select>
               <button type="button" id="catManageBtn" onclick="openCatManager()" style="padding:10px 14px;background:var(--navy);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:12px;white-space:nowrap;font-weight:600;">⚙️ Manage</button>
             </div>
+          </div>
+          <div class="form-group" id="productTypeRow" style="display:none;">
+            <label>Product Type</label>
+            <select class="form-select" id="f_productType" onchange="updatePreview()"></select>
           </div>
           <div class="form-group">
             <label>Image URL *</label>

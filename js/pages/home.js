@@ -492,7 +492,7 @@ window.submitReview = async function() {
   }
 
   try {
-    const { error } = await window._sb.from('reviews').insert({
+    const { error } = await window.ReviewsApi.submitReview(window._sb, {
       id: crypto.randomUUID(),
       name: name, rating: rating, text: text, product: product,
       media: uploadedMedia
@@ -583,7 +583,7 @@ window._sb = sb;
 // ── Dropdown image loader ──
 window.loadDropdownImages = async function() {
   try {
-    const { data: row } = await sb.from('settings').select('value').eq('key', 'homeImages').maybeSingle();
+    const { data: row } = await window.HomeEditorApi.getHomeImages(sb);
     var data = (row && row.value) ? row.value : {};
     homeImagesCache = data;
     Object.keys(data).forEach(function(key){
@@ -683,7 +683,7 @@ renderMoreSections(DEFAULT_MORE_SECTIONS);
 // ── Home Images (brand + dropdown) — load first since other steps depend on its result ──
 var homeImagesLoaded = (async function loadHomeImages(){
   try {
-    const { data: row, error } = await sb.from('settings').select('value').eq('key', 'homeImages').maybeSingle();
+    const { data: row, error } = await window.HomeEditorApi.getHomeImages(sb);
     if (error) throw error;
     var data = (row && row.value) ? row.value : {};
     homeImagesCache = data;
@@ -702,7 +702,7 @@ var homeImagesLoaded = (async function loadHomeImages(){
 // ── Carousel Order (merged products + custom images, managed from home-editor) ──
 (async function loadCarouselOrderForHome(){
   try {
-    const { data: row, error } = await sb.from('settings').select('value').eq('key', 'carouselOrder').maybeSingle();
+    const { data: row, error } = await window.HomeEditorApi.getCarouselOrder(sb);
     if (error) throw error;
     carouselOrder = (row && row.value && row.value.order && row.value.order.length > 0) ? row.value.order : null;
     carouselImagesHidden = !!(row && row.value && row.value.imagesHidden);
@@ -712,7 +712,7 @@ var homeImagesLoaded = (async function loadHomeImages(){
 
 var productsLoaded = (async function loadProductsForHome(){
   try {
-    const { data, error } = await sb.from('products').select('*');
+    const { data, error } = await window.ProductsApi.getStoreProducts(sb);
     if (error) throw error;
     var arr = (data || []).map(function(row){
       return { id: row.id, name: row.name||'', desc: row.description||'', price: row.price||0, category: row.category||'candles', img: row.img||'', stock: typeof row.stock==='number'?row.stock:0, order: typeof row.order==='number'?row.order:0 };
@@ -739,7 +739,7 @@ var productsLoaded = (async function loadProductsForHome(){
 // ── Reviews ──
 (async function loadReviews(){
   try {
-    const { data, error } = await sb.from('reviews').select('*');
+    const { data, error } = await window.ReviewsApi.getAllReviews(sb);
     if (error) throw error;
     window.renderReviews(data || []);
   } catch(e) { console.warn('Reviews load failed', e); }

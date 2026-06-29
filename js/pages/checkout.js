@@ -284,7 +284,7 @@ async function saveAndShowSuccess(orderData) {
     // instead of one round-trip at a time.
     var stockChecks = await Promise.all(orderData.items.map(function(checkItem) {
       if (!checkItem.id) return null;
-      return window._sb.from('products').select('stock, name').eq('id', checkItem.id).single()
+      return window.ProductsApi.getStockAndName(window._sb, checkItem.id)
         .then(function(res) { return { item: checkItem, pCheck: res.data }; });
     }));
 
@@ -305,7 +305,7 @@ async function saveAndShowSuccess(orderData) {
     // helper (was defined but never called anywhere until now). ──
     var giftItemsToCheck = orderData.items.filter(function(it) { return !it.id && it.isGiftSet; });
     if (giftItemsToCheck.length) {
-      const { data: giftRow } = await window._sb.from('settings').select('value').eq('key', 'giftSet').maybeSingle();
+      const { data: giftRow } = await window.CustomBuilderApi.getGiftSetData(window._sb);
       var giftDataForCheck = (giftRow && giftRow.value) || {};
       for (var gci = 0; gci < giftItemsToCheck.length; gci++) {
         var giftCheck = window.CandellaStock.validateStock(giftDataForCheck, giftItemsToCheck[gci]);

@@ -381,7 +381,7 @@ window.loadOrders = loadOrders;
 // ===== LOAD PRODUCT COSTS (for profit estimation) =====
 async function loadProductCosts() {
   try {
-    const { data, error } = await sb.from('products').select('*');
+    const { data, error } = await window.ProductsApi.getProductsForCosts(sb);
     if (error) throw error;
     productCostMap = {};
     productNameMap = {};
@@ -1471,7 +1471,7 @@ window.loadMonthlyClosing = async function() {
   document.getElementById('closingSaveStatus').textContent = 'جاري التحميل...';
 
   try {
-    const { data: row } = await sb.from('settings').select('value').eq('key', 'monthlyClosing_' + monthVal).maybeSingle();
+    const { data: row } = await window.AnalyticsApi.getMonthlyClosing(sb, monthVal);
     closingData = row ? Object.assign(closingEmptyData(), row.value) : closingEmptyData();
     // تأكد إن كل المصفوفات موجودة حتى لو الداتا القديمة ناقصة حقل
     if (!closingData.employees || !closingData.employees.length) closingData.employees = closingEmptyData().employees;
@@ -1493,7 +1493,7 @@ window.saveMonthlyClosing = async function() {
   var statusEl = document.getElementById('closingSaveStatus');
   statusEl.textContent = 'جاري الحفظ...';
   try {
-    const { error } = await sb.from('settings').upsert({ key: 'monthlyClosing_' + closingCurrentMonth, value: closingData });
+    const { error } = await window.AnalyticsApi.saveMonthlyClosing(sb, closingCurrentMonth, closingData);
     if (error) throw error;
     statusEl.textContent = '✅ تم الحفظ';
     setTimeout(function(){ statusEl.textContent = ''; }, 2500);

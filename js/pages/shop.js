@@ -14,10 +14,13 @@ var products = [];
 var bestSellerIds = new Set();
 var selectedVariants = {};
 var currentFilter = 'all';
+var currentTypeFilter = 'all';
 
 // Read filter from URL
 var urlFilter = new URLSearchParams(window.location.search).get('filter') || 'all';
 currentFilter = urlFilter;
+var urlTypeFilter = new URLSearchParams(window.location.search).get('typefilter') || 'all';
+currentTypeFilter = urlTypeFilter;
 
 // Read search query from URL (set by the nav search box on home.html) —
 // when present, it takes over rendering: shows matching products by name
@@ -70,8 +73,13 @@ function renderProducts(filter) {
     if(titleEl) titleEl.textContent = titles[filter] || 'Our Collection';
   } else {
     filtered = products.filter(function(p){ return p.category === filter; });
+    if (categoryHasTypes(filter) && currentTypeFilter !== 'all') {
+      filtered = filtered.filter(function(p){ return p.productType === currentTypeFilter; });
+    }
     if(titleEl) titleEl.textContent = titles[filter] || 'Our Collection';
   }
+
+  renderProductTypeTabs(filter, !searchQuery && categoryHasTypes(filter));
 
   if(filtered.length === 0){
     list.innerHTML = searchQuery
@@ -118,6 +126,50 @@ function renderProducts(filter) {
       observer.observe(c);
     });
   }, 50);
+}
+
+// Reference to the same array already returned by fetchCategories() —
+// not a copy, not a second fetch. Lets renderProducts()/
+// renderProductTypeTabs() resolve "does this category own types"
+// without duplicating category data anywhere.
+var loadedCategories = [];
+
+// Generic by design: ANY category with a non-empty `types` array
+// qualifies — no hardcoded category key anywhere in this check.
+function categoryHasTypes(categoryKey) {
+  var cat = loadedCategories.find(function(c){ return c.key === categoryKey; });
+  return !!(cat && cat.types && cat.types.length);
+}
+
+// ── Product Type sub-tabs — built dynamically from the active
+// category's own `types` array (single source of truth:
+// settings.categories.list[].types). Reuses the existing .tab/.tab.active
+// styling/UX already used by the primary category tabs above — no
+// Custom Builder code or CSS imported, no hardcoded type list anywhere.
+function renderProductTypeTabs(categoryKey, show) {
+  var wrap = document.getElementById('productTypeTabs');
+  if (!wrap) return;
+  var cat = loadedCategories.find(function(c){ return c.key === categoryKey; });
+  var types = (cat && cat.types) || [];
+  if (!show || !types.length) {
+    wrap.style.display = 'none';
+    wrap.innerHTML = '';
+    return;
+  }
+  var sorted = types.slice().sort(function(a,b){ return a.order - b.order; });
+  wrap.innerHTML = '<button class="tab sub" data-typefilter="all">All</button>'
+    + sorted.map(function(t){
+      return '<button class="tab sub" data-typefilter="' + t.key + '">' + t.label + '</button>';
+    }).join('');
+  wrap.style.display = 'flex';
+  wrap.querySelectorAll('.tab.sub').forEach(function(t){
+    t.classList.toggle('active', t.getAttribute('data-typefilter') === currentTypeFilter);
+    t.onclick = function(){
+      currentTypeFilter = this.getAttribute('data-typefilter');
+      renderProducts(categoryKey);
+      window.history.replaceState(null,'','shop.html?filter='+categoryKey+'&typefilter='+currentTypeFilter);
+    };
+  });
 }
 
 window.selectScent = function(pid, scent) {
@@ -282,6 +334,10 @@ const sb = window.createSupabaseClient();
 var DEFAULT_CATS = window.DEFAULT_CATEGORIES;
 
 function buildCategories(cats) {
+  // Store a reference to the already-fetched array (not a copy, not a
+  // second fetch) so renderProducts()/renderProductTypeTabs() can later
+  // resolve "does the active category own types" off the same data.
+  loadedCategories = cats;
   // Update filter tabs
   var tabsWrap = document.getElementById('filterTabs');
   if (tabsWrap) {
@@ -310,6 +366,12 @@ function buildCategories(cats) {
         return '<a href="shop.html?filter=' + c.key + '" class="new-side-sub" data-filter="' + c.key + '">' + plain + '</a>';
       }).join('');
   }
+  // Categories and products load via independent async calls below with
+  // no ordering guarantee — re-render whichever finishes resolving last
+  // so Product Type sub-tabs (which depend on loadedCategories) are
+  // never stuck stale if categories resolve after products already
+  // rendered the current filter.
+  renderProducts(currentFilter);
 }
 
 // Read+fallback logic now comes from window.fetchCategories
@@ -342,10 +404,10 @@ function buildCategories(cats) {
 // ── Products ──
 (async function loadProductsForShop(){
   try {
-    const { data, error } = await sb.from('products').select('*');
+    const { data, error } = await window.ProductsApi.getStoreProducts(sb);
     if (error) throw error;
     products = (data || []).map(function(row){
-      return { id:row.id, name:row.name||'', desc:row.description||'', price:row.price||0, category:row.category||'candles', img:row.img||'', stock:typeof row.stock==='number'?row.stock:0, order:typeof row.order==='number'?row.order:0 };
+      return { id:row.id, name:row.name||'', desc:row.description||'', price:row.price||0, category:row.category||'candles', img:row.img||'', stock:typeof row.stock==='number'?row.stock:0, order:typeof row.order==='number'?row.order:0, productType: row.product_type || '' };
     }).sort(function(a,b){ return a.order - b.order; });
     products.forEach(function(p){ if(p.category==='candles' && !selectedVariants[p.id]) selectedVariants[p.id]={scent:'Rose'}; });
     renderProducts(currentFilter);

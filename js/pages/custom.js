@@ -22,7 +22,7 @@ const sb = window.createSupabaseClient();
 // Override hero image from Supabase if set
 (async function loadGiftSetForCustomPage(){
   try {
-    const { data: row, error } = await sb.from('settings').select('value').eq('key', 'giftSet').maybeSingle();
+    const { data: row, error } = await window.CustomBuilderApi.getGiftSetData(sb);
     if (error) throw error;
     var d = (row && row.value) ? row.value : {};
 

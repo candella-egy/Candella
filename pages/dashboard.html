@@ -1,6 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- ==================================================
+       اسم الصفحة:
+       dashboard.html
+
+       الهدف منها:
+       لوحة تحكم الأدمن الرئيسية — تسجيل دخول، عرض/فلترة/تحديث حالة
+       الطلبات، إحصائيات وأرباح تقديرية، إدارة الموظفين والصلاحيات،
+       التصدير لإكسل، وتقفيل الشهر المالى.
+
+       ملفات CSS المستخدمة:
+       - css/style.css
+
+       ملفات JS المستخدمة (بترتيب التحميل):
+       SheetJS/XLSX (CDN) → supabase-js (CDN) → config/supabase.js →
+       db/databaseAdapter.js → api/authApi.js → services/stockService.js
+       → services/orderService.js → api/ordersApi.js →
+       services/customGiftService.js → shared/img.js →
+       shared/domUtils.js → shared/giftGallery.js →
+       api/productsApi.js → api/analyticsApi.js → pages/dashboard.js
+       (Module)
+
+       ترتيب تحميل الملفات:
+       كل الملفات أعلاه محمَّلة بـ defer فى <head>.
+
+       أهم Components الموجودة:
+       جدول الطلبات، نافذة تفاصيل الطلب، بطاقات الإحصائيات، نافذة
+       إدارة الموظفين، أقسام التصدير (شهرى/يومى/تتبع عملاء)، قسم تقفيل
+       الشهر.
+
+       أهم APIs التى تعتمد عليها:
+       AuthApi، OrdersApi، ProductsApi، AnalyticsApi.
+       ================================================== -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Candella – Admin Dashboard</title>
@@ -11,14 +43,18 @@
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="../js/config/supabase.js" defer></script>
+  <script src="../js/db/databaseAdapter.js" defer></script>
+  <script src="../js/api/authApi.js" defer></script>
   <script src="../js/services/stockService.js" defer></script>
   <script src="../js/services/orderService.js" defer></script>
+  <script src="../js/api/ordersApi.js" defer></script>
   <script src="../js/services/customGiftService.js" defer></script>
   <script src="../js/shared/img.js" defer></script>
   <script src="../js/shared/domUtils.js" defer></script>
   <script src="../js/shared/giftGallery.js" defer></script>
   <script src="../js/api/productsApi.js" defer></script>
   <script src="../js/api/analyticsApi.js" defer></script>
+  <script src="../js/api/orderReturnsApi.js" defer></script>
   </head>
 <body class="dash-scope">
 
